@@ -16,10 +16,15 @@ const normalizeInterviewPayload = (payload: any) => {
 
 const getAllInterviews = async (userId: string, organizationId: string) => {
   try {
+    // Without an org, match on the user only: an empty org id would match every
+    // other org-less user's interviews.
+    const ownerFilter = organizationId
+      ? `organization_id.eq.${organizationId},user_id.eq.${userId}`
+      : `user_id.eq.${userId}`;
     const { data: clientData, error: clientError } = await supabase
       .from("interview")
       .select("*")
-      .or(`organization_id.eq.${organizationId},user_id.eq.${userId}`)
+      .or(ownerFilter)
       .order("created_at", { ascending: false });
 
     return [...(clientData || [])];
