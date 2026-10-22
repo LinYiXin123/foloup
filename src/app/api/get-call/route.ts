@@ -1,5 +1,7 @@
+import { canAccessInterview, requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { generateInterviewAnalytics } from "@/services/analytics.service";
+import { InterviewService } from "@/services/interviews.service";
 import { ResponseService } from "@/services/responses.service";
 import type { Response } from "@/types/response";
 import { NextResponse } from "next/server";
@@ -11,9 +13,20 @@ const retell = new Retell({
 
 export async function POST(req: Request) {
   logger.info("get-call request received");
+  const { user, error } = await requireUser();
+  if (error) {
+    return error;
+  }
   const body = await req.json();
 
   const callDetails: Response = await ResponseService.getResponseByCallId(body.id);
+  // Transcripts are candidate data: only the interview's owner may read them.
+  const ownerInterview = callDetails
+    ? await InterviewService.getInterviewById(callDetails.interview_id)
+    : null;
+  if (!canAccessInterview(ownerInterview, user)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   let callResponse = callDetails.details;
   if (callDetails.is_analysed) {
     return NextResponse.json(

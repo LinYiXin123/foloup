@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import {
   SYSTEM_PROMPT,
@@ -8,6 +9,10 @@ import { OpenAI } from "openai";
 
 export async function POST(req: Request) {
   logger.info("analyze-communication request received");
+  const { error } = await requireUser();
+  if (error) {
+    return error;
+  }
 
   try {
     const body = await req.json();

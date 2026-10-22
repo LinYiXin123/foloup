@@ -1,3 +1,4 @@
+import { canAccessInterview, requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { SYSTEM_PROMPT, createUserPrompt } from "@/lib/prompts/generate-insights";
 import { InterviewService } from "@/services/interviews.service";
@@ -7,10 +8,17 @@ import { OpenAI } from "openai";
 
 export async function POST(req: Request) {
   logger.info("generate-insights request received");
+  const { user, error } = await requireUser();
+  if (error) {
+    return error;
+  }
   const body = await req.json();
 
-  const responses = await ResponseService.getAllResponses(body.interviewId);
   const interview = await InterviewService.getInterviewById(body.interviewId);
+  if (!canAccessInterview(interview, user)) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+  const responses = await ResponseService.getAllResponses(body.interviewId);
 
   let callSummaries = "";
   if (responses) {

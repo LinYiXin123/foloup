@@ -9,6 +9,10 @@ export async function parsePdf(formData: FormData) {
     if (!file) {
       throw new Error("No file provided");
     }
+    // Candidates call this from the public interview page, so enforce the limit here too.
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error("File too large");
+    }
 
     const loadingTask = getDocument({
       data: new Uint8Array(await file.arrayBuffer()),

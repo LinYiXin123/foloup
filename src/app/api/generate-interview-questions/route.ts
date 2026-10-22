@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { SYSTEM_PROMPT, generateQuestionsPrompt } from "@/lib/prompts/generate-questions";
 import { NextResponse } from "next/server";
@@ -7,6 +8,10 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   logger.info("generate-interview-questions request received");
+  const { error } = await requireUser();
+  if (error) {
+    return error;
+  }
   const body = await req.json();
 
   const openai = new OpenAI({

@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { InterviewService } from "@/services/interviews.service";
 import { nanoid } from "nanoid";
@@ -6,6 +7,11 @@ import { NextResponse } from "next/server";
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
 export async function POST(req: Request) {
+  const { user, error } = await requireUser();
+  if (error) {
+    return error;
+  }
+
   try {
     const url_id = nanoid();
     const url = `${base_url}/call/${url_id}`;
@@ -24,6 +30,9 @@ export async function POST(req: Request) {
 
     const newInterview = await InterviewService.createInterview({
       ...payload,
+      // Ownership comes from the session, never from the request body.
+      user_id: user.userId,
+      organization_id: user.orgId,
       url: url,
       id: url_id,
       readable_slug: readableSlug,

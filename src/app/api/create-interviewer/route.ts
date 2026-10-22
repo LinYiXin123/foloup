@@ -1,3 +1,4 @@
+import { requireUser } from "@/lib/auth";
 import { INTERVIEWERS, RETELL_AGENT_GENERAL_PROMPT } from "@/lib/constants";
 import { logger } from "@/lib/logger";
 import { InterviewerService } from "@/services/interviewers.service";
@@ -10,6 +11,10 @@ const retellClient = new Retell({
 
 export async function GET(res: NextRequest) {
   logger.info("create-interviewer request received");
+  const { error: authError } = await requireUser();
+  if (authError) {
+    return authError;
+  }
 
   try {
     const newModel = await retellClient.llm.create({

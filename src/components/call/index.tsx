@@ -1,6 +1,7 @@
 "use client";
 
 import { FeedbackForm } from "@/components/call/feedbackForm";
+import FileUpload from "@/components/dashboard/interview/fileUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,6 +72,9 @@ function Call({ interview }: InterviewProps) {
   const [interviewTimeDuration, setInterviewTimeDuration] = useState<string>("1");
   const [time, setTime] = useState(0);
   const [currentTimeDuration, setCurrentTimeDuration] = useState<string>("0");
+  const [resumeText, setResumeText] = useState("");
+  const [isResumeUploaded, setIsResumeUploaded] = useState(false);
+  const [resumeFileName, setResumeFileName] = useState("");
 
   const lastUserResponseRef = useRef<HTMLDivElement | null>(null);
 
@@ -186,12 +190,6 @@ function Call({ interview }: InterviewProps) {
   };
 
   const startConversation = async () => {
-    const data = {
-      mins: interview?.time_duration,
-      objective: interview?.objective,
-      questions: interview?.questions.map((q) => q.question).join(", "),
-      name: name || "not provided",
-    };
     setLoading(true);
 
     const oldUserEmails: string[] = (await ResponseService.getAllEmails(interview.id)).map(
@@ -204,11 +202,20 @@ function Call({ interview }: InterviewProps) {
     if (OldUser) {
       setIsOldUser(true);
     } else {
-      const registerCallResponse: registerCallResponseType = await axios.post(
-        "/api/register-call",
-        { dynamic_data: data, interviewer_id: interview?.interviewer_id },
-      );
-      if (registerCallResponse.data.registerCallResponse.access_token) {
+      // The server fills in the interview details itself; we only send what the candidate gave us.
+      const registerCallResponse: registerCallResponseType | null = await axios
+        .post("/api/register-call", {
+          interview_id: interview.id,
+          name: name,
+          resume: resumeText,
+        })
+        .catch((error) => {
+          console.error(error);
+          toast.error("Could not start the interview. Please try again.");
+
+          return null;
+        });
+      if (registerCallResponse?.data.registerCallResponse.access_token) {
         await webClient
           .startCall({
             accessToken: registerCallResponse.data.registerCallResponse.access_token,
@@ -345,6 +352,26 @@ function Call({ interview }: InterviewProps) {
                       </div>
                     </div>
                   )}
+                  <div className="flex flex-col items-center mb-4">
+                    <p className="text-sm font-normal w-[75%]">
+                      Your resume (PDF, optional). The interviewer uses it to ask about your
+                      experience.
+                    </p>
+                    <div className="w-[75%]">
+                      <FileUpload
+                        isUploaded={isResumeUploaded}
+                        setIsUploaded={(uploaded) => {
+                          setIsResumeUploaded(uploaded);
+                          if (!uploaded) {
+                            setResumeText("");
+                          }
+                        }}
+                        fileName={resumeFileName}
+                        setFileName={setResumeFileName}
+                        setUploadedDocumentContext={setResumeText}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="w-[80%] flex flex-row mx-auto justify-center items-center align-middle">
                   <Button

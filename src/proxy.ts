@@ -1,9 +1,19 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isProtectedRoute = createRouteMatcher(["/dashboard(.*)", "/call(.*)"]);
+// Everything is private unless listed here. Candidates open /call/* without an account,
+// so the call page and the one API it needs stay public. The Retell webhook is verified
+// by its signature instead of a session.
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/call(.*)",
+  "/api/register-call(.*)",
+  "/api/response-webhook(.*)",
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
+  if (!isPublicRoute(req)) {
     await auth.protect();
   }
 });
