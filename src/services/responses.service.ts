@@ -1,6 +1,6 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createServiceClient } from "@/lib/supabase";
 
-const supabase = createClientComponentClient();
+const supabase = createServiceClient();
 
 const createResponse = async (payload: any) => {
   const { error, data } = await supabase

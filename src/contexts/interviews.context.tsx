@@ -1,6 +1,6 @@
 "use client";
 
-import { InterviewService } from "@/services/interviews.service";
+import { getMyInterview, getMyInterviews } from "@/actions/dashboard";
 import type { Interview } from "@/types/interview";
 import { useClerk, useOrganization } from "@clerk/nextjs";
 import React, { useState, useContext, type ReactNode, useEffect } from "react";
@@ -36,10 +36,7 @@ export function InterviewProvider({ children }: InterviewProviderProps) {
   const fetchInterviews = async () => {
     try {
       setInterviewsLoading(true);
-      const response = await InterviewService.getAllInterviews(
-        user?.id as string,
-        organization?.id as string,
-      );
+      const response = await getMyInterviews();
       setInterviewsLoading(false);
       setInterviews(response);
     } catch (error) {
@@ -49,7 +46,7 @@ export function InterviewProvider({ children }: InterviewProviderProps) {
   };
 
   const getInterviewById = async (interviewId: string) => {
-    const response = await InterviewService.getInterviewById(interviewId);
+    const response = await getMyInterview(interviewId);
 
     return response;
   };

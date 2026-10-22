@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteMyResponse, getMyResponse, updateMyResponse } from "@/actions/dashboard";
 import QuestionAnswerCard from "@/components/dashboard/interview/questionAnswerCard";
 import LoaderWithText from "@/components/loaders/loader-with-text/loaderWithText";
 import {
@@ -24,7 +25,6 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CandidateStatus } from "@/lib/enum";
-import { ResponseService } from "@/services/responses.service";
 import type { Analytics, CallData } from "@/types/response";
 import { CircularProgress } from "@nextui-org/react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
@@ -82,7 +82,7 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
     const fetchEmail = async () => {
       setIsLoading(true);
       try {
-        const response = await ResponseService.getResponseByCallId(call_id);
+        const response = await getMyResponse(call_id);
         setEmail(response.email);
         setName(response.name);
         setCandidateStatus(response.candidate_status);
@@ -122,12 +122,12 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
 
   const onDeleteResponseClick = async () => {
     try {
-      const response = await ResponseService.getResponseByCallId(call_id);
+      const response = await getMyResponse(call_id);
 
       if (response) {
         const interview_id = response.interview_id;
 
-        await ResponseService.deleteResponse(call_id);
+        await deleteMyResponse(call_id);
 
         router.push(`/interviews/${interview_id}`);
 
@@ -198,10 +198,7 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
                       value={candidateStatus}
                       onValueChange={async (newValue: string) => {
                         setCandidateStatus(newValue);
-                        await ResponseService.updateResponse(
-                          { candidate_status: newValue },
-                          call_id,
-                        );
+                        await updateMyResponse(call_id, { candidate_status: newValue });
                         onCandidateStatusChange(call_id, newValue);
                       }}
                     >

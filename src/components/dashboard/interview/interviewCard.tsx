@@ -1,8 +1,8 @@
+import { getInterviewerImage } from "@/actions/candidate";
+import { getMyInterviewResponses } from "@/actions/dashboard";
 import MiniLoader from "@/components/loaders/mini-loader/miniLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { InterviewerService } from "@/services/interviewers.service";
-import { ResponseService } from "@/services/responses.service";
 import axios from "axios";
 import { ArrowUpRight, Copy } from "lucide-react";
 import { CopyCheck } from "lucide-react";
@@ -29,8 +29,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const fetchInterviewer = async () => {
-      const interviewer = await InterviewerService.getInterviewer(interviewerId);
-      setImg(interviewer.image);
+      setImg(await getInterviewerImage(interviewerId));
     };
     fetchInterviewer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -40,7 +39,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   useEffect(() => {
     const fetchResponses = async () => {
       try {
-        const responses = await ResponseService.getAllResponses(id);
+        const responses = await getMyInterviewResponses(id);
         setResponseCount(responses.length);
         if (responses.length > 0) {
           setIsFetching(true);

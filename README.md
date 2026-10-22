@@ -67,7 +67,8 @@ Supabase is used for storing the data. It's really simple to set up and the free
 <img src="https://github.com/user-attachments/assets/a31c14b8-45ca-417c-8927-aceb36fa5990" alt="Supabase SQL Editor" height="200">
 
 3. Run the SQL code to confirm the tables are created.
-4. Copy the supabase url and anon key from the project settings and paste it in the `.env` file in `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Copy the supabase url and the **service_role** key from the project settings and paste them in the `.env` file in `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. The service role key is only used on the server; the browser never talks to Supabase directly.
+5. If you set up the database before row-level security was added, also run the SQL files in `supabase/migrations/` (at least `20261022120000_enable_row_level_security.sql`).
 
 ## Retell AI Setup ([Retell AI](https://retellai.com/))
 

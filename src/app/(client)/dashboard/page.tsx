@@ -1,13 +1,15 @@
 "use client";
 
+import {
+  endMyOrganizationFreeTrial,
+  getMyOrganization,
+  getMyOrganizationResponseCount,
+} from "@/actions/dashboard";
 import Modal from "@/components/dashboard/Modal";
 import CreateInterviewCard from "@/components/dashboard/interview/createInterviewCard";
 import InterviewCard from "@/components/dashboard/interview/interviewCard";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useInterviews } from "@/contexts/interviews.context";
-import { ClientService } from "@/services/clients.service";
-import { InterviewService } from "@/services/interviews.service";
-import { ResponseService } from "@/services/responses.service";
 import { useOrganization } from "@clerk/nextjs";
 import { Gem, Plus } from "lucide-react";
 import Image from "next/image";
@@ -37,7 +39,7 @@ function Interviews() {
     const fetchOrganizationData = async () => {
       try {
         if (organization?.id) {
-          const data = await ClientService.getOrganizationById(organization.id);
+          const data = await getMyOrganization();
           if (data?.plan) {
             setCurrentPlan(data.plan);
             if (data.plan === "free_trial_over") {
@@ -64,14 +66,11 @@ function Interviews() {
 
       setLoading(true);
       try {
-        const totalResponses = await ResponseService.getResponseCountByOrganizationId(
-          organization.id,
-        );
+        const totalResponses = await getMyOrganizationResponseCount();
         const hasExceededLimit = totalResponses >= allowedResponsesCount;
         if (hasExceededLimit) {
           setCurrentPlan("free_trial_over");
-          await InterviewService.deactivateInterviewsByOrgId(organization.id);
-          await ClientService.updateOrganization({ plan: "free_trial_over" }, organization.id);
+          await endMyOrganizationFreeTrial();
         }
       } catch (error) {
         console.error("Error fetching responses:", error);

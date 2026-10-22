@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  getMyInterviewResponses,
+  getMyOrganization,
+  updateMyInterview,
+  updateMyResponse,
+} from "@/actions/dashboard";
 import CallInfo from "@/components/call/callInfo";
 import Modal from "@/components/dashboard/Modal";
 import EditInterview from "@/components/dashboard/interview/editInterview";
@@ -20,9 +26,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useInterviews } from "@/contexts/interviews.context";
 import { CandidateStatus } from "@/lib/enum";
 import { formatTimestampToDateHHMM } from "@/lib/utils";
-import { ClientService } from "@/services/clients.service";
-import { InterviewService } from "@/services/interviews.service";
-import { ResponseService } from "@/services/responses.service";
 import type { Interview } from "@/types/interview";
 import type { Response } from "@/types/response";
 import { useOrganization } from "@clerk/nextjs";
@@ -102,7 +105,7 @@ function InterviewHome({ params, searchParams }: Props) {
     const fetchOrganizationData = async () => {
       try {
         if (organization?.id) {
-          const data = await ClientService.getOrganizationById(organization.id);
+          const data = await getMyOrganization();
           if (data?.plan) {
             setCurrentPlan(data.plan);
           }
@@ -117,7 +120,7 @@ function InterviewHome({ params, searchParams }: Props) {
   useEffect(() => {
     const fetchResponses = async () => {
       try {
-        const response = await ResponseService.getAllResponses(resolvedParams.interviewId);
+        const response = await getMyInterviewResponses(resolvedParams.interviewId);
         setResponses(response);
         setLoading(true);
       } catch (error) {
@@ -141,7 +144,7 @@ function InterviewHome({ params, searchParams }: Props) {
 
   const handleResponseClick = async (response: Response) => {
     try {
-      await ResponseService.saveResponse({ is_viewed: true }, response.call_id);
+      await updateMyResponse(response.call_id, { is_viewed: true });
       if (responses) {
         const updatedResponses = responses.map((r) =>
           r.call_id === response.call_id ? { ...r, is_viewed: true } : r,
@@ -159,10 +162,7 @@ function InterviewHome({ params, searchParams }: Props) {
       const updatedIsActive = !isActive;
       setIsActive(updatedIsActive);
 
-      await InterviewService.updateInterview(
-        { is_active: updatedIsActive },
-        resolvedParams.interviewId,
-      );
+      await updateMyInterview(resolvedParams.interviewId, { is_active: updatedIsActive });
 
       toast.success("Interview status updated", {
         description: `The interview is now ${updatedIsActive ? "active" : "inactive"}.`,
@@ -180,7 +180,7 @@ function InterviewHome({ params, searchParams }: Props) {
 
   const handleThemeColorChange = async (newColor: string) => {
     try {
-      await InterviewService.updateInterview({ theme_color: newColor }, resolvedParams.interviewId);
+      await updateMyInterview(resolvedParams.interviewId, { theme_color: newColor });
 
       toast.success("Theme color updated", {
         position: "bottom-right",

@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  type PublicInterview,
+  getInterviewerImage,
+  markCallEnded,
+  submitInterviewFeedback,
+} from "@/actions/candidate";
 import { FeedbackForm } from "@/components/call/feedbackForm";
 import FileUpload from "@/components/dashboard/interview/fileUpload";
 import {
@@ -13,12 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useResponses } from "@/contexts/responses.context";
 import { isLightColor, testEmail } from "@/lib/utils";
-import { FeedbackService } from "@/services/feedback.service";
-import { InterviewerService } from "@/services/interviewers.service";
-import { ResponseService } from "@/services/responses.service";
-import type { Interview } from "@/types/interview";
 import type { FeedbackData } from "@/types/response";
 import axios from "axios";
 import { AlarmClockIcon, ArrowUpRightSquareIcon, CheckCircleIcon, XCircleIcon } from "lucide-react";
@@ -34,7 +35,7 @@ import { TabSwitchWarning, useTabSwitchPrevention } from "./tabSwitchPrevention"
 const webClient = new RetellWebClient();
 
 type InterviewProps = {
-  interview: Interview;
+  interview: PublicInterview;
 };
 
 type registerCallResponseType = {
@@ -52,7 +53,6 @@ type transcriptType = {
 };
 
 function Call({ interview }: InterviewProps) {
-  const { createResponse } = useResponses();
   const [lastInterviewerResponse, setLastInterviewerResponse] = useState<string>("");
   const [lastUserResponse, setLastUserResponse] = useState<string>("");
   const [activeTurn, setActiveTurn] = useState<string>("");
@@ -80,7 +80,7 @@ function Call({ interview }: InterviewProps) {
 
   const handleFeedbackSubmit = async (formData: Omit<FeedbackData, "interview_id">) => {
     try {
-      const result = await FeedbackService.submitFeedback({
+      const result = await submitInterviewFeedback({
         ...formData,
         interview_id: interview.id,
       });
@@ -192,49 +192,35 @@ function Call({ interview }: InterviewProps) {
   const startConversation = async () => {
     setLoading(true);
 
-    const oldUserEmails: string[] = (await ResponseService.getAllEmails(interview.id)).map(
-      (item) => item.email,
-    );
-    const OldUser =
-      oldUserEmails.includes(email) ||
-      (interview?.respondents && !interview?.respondents.includes(email));
-
-    if (OldUser) {
-      setIsOldUser(true);
-    } else {
-      // The server fills in the interview details itself; we only send what the candidate gave us.
-      const registerCallResponse: registerCallResponseType | null = await axios
-        .post("/api/register-call", {
-          interview_id: interview.id,
-          name: name,
-          resume: resumeText,
-        })
-        .catch((error) => {
+    // The server fills in the interview details, checks whether this email may take the
+    // interview, and records the response; we only send what the candidate gave us.
+    const registerCallResponse: registerCallResponseType | null = await axios
+      .post("/api/register-call", {
+        interview_id: interview.id,
+        name: name,
+        email: email,
+        resume: resumeText,
+      })
+      .catch((error) => {
+        if (error?.response?.status === 409) {
+          setIsOldUser(true);
+        } else {
           console.error(error);
           toast.error("Could not start the interview. Please try again.");
+        }
 
-          return null;
-        });
-      if (registerCallResponse?.data.registerCallResponse.access_token) {
-        await webClient
-          .startCall({
-            accessToken: registerCallResponse.data.registerCallResponse.access_token,
-          })
-          .catch(console.error);
-        setIsCalling(true);
-        setIsStarted(true);
+        return null;
+      });
+    if (registerCallResponse?.data.registerCallResponse.access_token) {
+      await webClient
+        .startCall({
+          accessToken: registerCallResponse.data.registerCallResponse.access_token,
+        })
+        .catch(console.error);
+      setIsCalling(true);
+      setIsStarted(true);
 
-        setCallId(registerCallResponse?.data?.registerCallResponse?.call_id);
-
-        const response = await createResponse({
-          interview_id: interview.id,
-          call_id: registerCallResponse.data.registerCallResponse.call_id,
-          email: email,
-          name: name,
-        });
-      } else {
-        console.log("Failed to register call");
-      }
+      setCallId(registerCallResponse?.data?.registerCallResponse?.call_id);
     }
 
     setLoading(false);
@@ -248,8 +234,7 @@ function Call({ interview }: InterviewProps) {
 
   useEffect(() => {
     const fetchInterviewer = async () => {
-      const interviewer = await InterviewerService.getInterviewer(interview.interviewer_id);
-      setInterviewerImg(interviewer.image);
+      setInterviewerImg(await getInterviewerImage(interview.interviewer_id));
     };
     fetchInterviewer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -259,10 +244,7 @@ function Call({ interview }: InterviewProps) {
   useEffect(() => {
     if (isEnded) {
       const updateInterview = async () => {
-        await ResponseService.saveResponse(
-          { is_ended: true, tab_switch_count: tabSwitchCount },
-          callId,
-        );
+        await markCallEnded(callId, tabSwitchCount);
       };
 
       updateInterview();

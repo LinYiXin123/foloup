@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { InterviewerService } from "@/services/interviewers.service";
 import axios from "axios";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +13,6 @@ function CreateInterviewerButton() {
     const response = await axios.get("/api/create-interviewer", {});
     console.log(response);
     setIsLoading(false);
-    InterviewerService.getAllInterviewers();
   };
 
   return (

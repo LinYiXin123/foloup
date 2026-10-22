@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteMyInterview, updateMyInterview } from "@/actions/dashboard";
 import QuestionCard from "@/components/dashboard/interview/create-popup/questionCard";
 import {
   AlertDialog,
@@ -17,7 +18,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useInterviewers } from "@/contexts/interviewers.context";
 import { useInterviews } from "@/contexts/interviews.context";
-import { InterviewService } from "@/services/interviews.service";
 import type { Interview, Question } from "@/types/interview";
 import { Plus, SaveIcon, TrashIcon } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
@@ -97,7 +97,7 @@ function EditInterview({ interview }: EditInterviewProps) {
       if (!interview) {
         return;
       }
-      const response = await InterviewService.updateInterview(interviewData, interview?.id);
+      const response = await updateMyInterview(interview.id, interviewData);
       setIsClicked(false);
       fetchInterviews();
       toast.success("Interview updated successfully.", {
@@ -116,7 +116,7 @@ function EditInterview({ interview }: EditInterviewProps) {
     }
 
     try {
-      await InterviewService.deleteInterview(interview.id);
+      await deleteMyInterview(interview.id);
       router.push("/dashboard");
     } catch (error) {
       console.error("Error deleting interview:", error);

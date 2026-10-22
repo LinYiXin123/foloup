@@ -82,3 +82,11 @@ CREATE TABLE feedback (
     feedback TEXT,
     satisfaction INTEGER
 );
+
+-- Only the server (service-role key) may access data; the anon key gets nothing.
+ALTER TABLE organization ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "user" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE interviewer ENABLE ROW LEVEL SECURITY;
+ALTER TABLE interview ENABLE ROW LEVEL SECURITY;
+ALTER TABLE response ENABLE ROW LEVEL SECURITY;
+ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;

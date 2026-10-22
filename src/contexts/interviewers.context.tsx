@@ -1,6 +1,6 @@
 "use client";
 
-import { InterviewerService } from "@/services/interviewers.service";
+import { createCustomInterviewer, getInterviewers } from "@/actions/dashboard";
 import type { Interviewer } from "@/types/interviewer";
 import { useClerk } from "@clerk/nextjs";
 import React, { useState, useContext, type ReactNode, useEffect } from "react";
@@ -33,7 +33,7 @@ export function InterviewerProvider({ children }: InterviewerProviderProps) {
   const fetchInterviewers = async () => {
     try {
       setInterviewersLoading(true);
-      const response = await InterviewerService.getAllInterviewers(user?.id as string);
+      const response = await getInterviewers();
       setInterviewers(response);
     } catch (error) {
       console.error(error);
@@ -42,7 +42,7 @@ export function InterviewerProvider({ children }: InterviewerProviderProps) {
   };
 
   const createInterviewer = async (payload: any) => {
-    await InterviewerService.createInterviewer({ ...payload });
+    await createCustomInterviewer(payload);
     fetchInterviewers();
   };
 

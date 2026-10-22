@@ -1,7 +1,8 @@
 import { RETELL_AGENT_GENERAL_PROMPT } from "@/lib/constants";
 import { logger } from "@/lib/logger";
-import { InterviewService } from "@/services/interviews.service";
 import { InterviewerService } from "@/services/interviewers.service";
+import { InterviewService } from "@/services/interviews.service";
+import { ResponseService } from "@/services/responses.service";
 import type { Question } from "@/types/interview";
 import { NextResponse } from "next/server";
 import Retell from "retell-sdk";
@@ -52,8 +53,25 @@ export async function POST(req: Request) {
   }
 
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 100) : "";
+  const email = typeof body.email === "string" ? body.email.trim().slice(0, 200) : "";
   const resume =
     typeof body.resume === "string" ? body.resume.trim().slice(0, MAX_RESUME_CHARS) : "";
+
+  // One interview per email, and only invited emails when the interview has a respondent list.
+  // This used to run in the browser, which needed read access to every candidate's email.
+  if (!interview.is_anonymous) {
+    const previousEmails = (await ResponseService.getAllEmails(interview.id)).map(
+      (item: { email: string }) => item.email,
+    );
+    const respondents: string[] = interview.respondents ?? [];
+    if (
+      !email ||
+      previousEmails.includes(email) ||
+      (respondents.length > 0 && !respondents.includes(email))
+    ) {
+      return NextResponse.json({ error: "Already responded" }, { status: 409 });
+    }
+  }
 
   try {
     await syncAgentPrompt(interviewer.agent_id);
@@ -71,6 +89,13 @@ export async function POST(req: Request) {
       name: name || "not provided",
       resume: resume || "Not provided",
     },
+  });
+
+  await ResponseService.createResponse({
+    interview_id: interview.id,
+    call_id: registerCallResponse.call_id,
+    email: email,
+    name: name,
   });
 
   logger.info("Call registered successfully");

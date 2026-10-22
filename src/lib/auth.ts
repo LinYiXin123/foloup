@@ -16,6 +16,16 @@ export async function requireUser(): Promise<
   return { user: { userId, orgId: orgId ?? "" } };
 }
 
+// For server actions, which have no HTTP response to return: throw instead.
+export async function getSignedInUser(): Promise<SignedInUser> {
+  const { userId, orgId } = await auth();
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return { userId, orgId: orgId ?? "" };
+}
+
 // Same rule the dashboard uses to list interviews: owned by the user or by their active org.
 export function canAccessInterview(
   interview: Pick<Interview, "user_id" | "organization_id"> | null | undefined,
