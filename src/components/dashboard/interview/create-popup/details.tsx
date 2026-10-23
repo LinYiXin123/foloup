@@ -1,3 +1,5 @@
+"use client";
+
 import Modal from "@/components/dashboard/Modal";
 import InterviewerDetailsModal from "@/components/dashboard/interviewer/interviewerDetailsModal";
 import { Button } from "@/components/ui/button";
@@ -5,12 +7,14 @@ import { CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useInterviewers } from "@/contexts/interviewers.context";
+import { useLanguage } from "@/contexts/language.context";
 import type { InterviewBase, Question } from "@/types/interview";
 import type { Interviewer } from "@/types/interviewer";
 import axios from "axios";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 import FileUpload from "../fileUpload";
 
@@ -18,7 +22,7 @@ interface Props {
   open: boolean;
   setLoading: (loading: boolean) => void;
   interviewData: InterviewBase;
-  setInterviewData: (interviewData: InterviewBase) => void;
+  onQuestionsReady: (interviewData: InterviewBase) => void;
   isUploaded: boolean;
   setIsUploaded: (isUploaded: boolean) => void;
   fileName: string;
@@ -29,12 +33,13 @@ function DetailsPopup({
   open,
   setLoading,
   interviewData,
-  setInterviewData,
+  onQuestionsReady,
   isUploaded,
   setIsUploaded,
   fileName,
   setFileName,
 }: Props) {
+  const { t } = useLanguage();
   const { interviewers } = useInterviewers();
   const [isClicked, setIsClicked] = useState(false);
   const [openInterviewerDetails, setOpenInterviewerDetails] = useState(false);
@@ -49,6 +54,7 @@ function DetailsPopup({
   );
   const [duration, setDuration] = useState(interviewData.time_duration);
   const [uploadedDocumentContext, setUploadedDocumentContext] = useState("");
+  const requestRef = useRef<AbortController | null>(null);
 
   const slideLeft = (id: string, value: number) => {
     const slider = document.getElementById(`${id}`);
@@ -65,42 +71,70 @@ function DetailsPopup({
   };
 
   const onGenrateQuestions = async () => {
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
 
-    const data = {
-      name: name.trim(),
-      objective: objective.trim(),
-      number: numQuestions,
-      context: uploadedDocumentContext,
-    };
+    try {
+      const data = {
+        name: name.trim(),
+        objective: objective.trim(),
+        number: numQuestions,
+        context: uploadedDocumentContext,
+      };
 
-    const generatedQuestions = (await axios.post("/api/generate-interview-questions", data)) as any;
+      const generatedQuestions = await axios.post("/api/generate-interview-questions", data, {
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) {
+        return;
+      }
 
-    const generatedQuestionsResponse = JSON.parse(generatedQuestions?.data?.response);
+      const generatedQuestionsResponse = JSON.parse(generatedQuestions?.data?.response);
+      if (
+        !Array.isArray(generatedQuestionsResponse.questions) ||
+        generatedQuestionsResponse.questions.length === 0 ||
+        typeof generatedQuestionsResponse.description !== "string"
+      ) {
+        throw new Error(t("The generated interview is incomplete."));
+      }
 
-    const updatedQuestions = generatedQuestionsResponse.questions.map((question: Question) => ({
-      id: uuidv4(),
-      question: question.question.trim(),
-      follow_up_count: 1,
-    }));
+      const updatedQuestions = generatedQuestionsResponse.questions.map((question: Question) => {
+        if (typeof question?.question !== "string" || !question.question.trim()) {
+          throw new Error(t("The generated interview contains an empty question."));
+        }
+        return {
+          id: uuidv4(),
+          question: question.question.trim(),
+          follow_up_count: 1,
+        };
+      });
 
-    const updatedInterviewData = {
-      ...interviewData,
-      name: name.trim(),
-      objective: objective.trim(),
-      questions: updatedQuestions,
-      interviewer_id: selectedInterviewer,
-      question_count: Number(numQuestions),
-      time_duration: duration,
-      description: generatedQuestionsResponse.description,
-      is_anonymous: isAnonymous,
-    };
-    setInterviewData(updatedInterviewData);
+      onQuestionsReady({
+        ...interviewData,
+        name: name.trim(),
+        objective: objective.trim(),
+        questions: updatedQuestions,
+        interviewer_id: selectedInterviewer,
+        question_count: Number(numQuestions),
+        time_duration: duration,
+        description: generatedQuestionsResponse.description,
+        is_anonymous: isAnonymous,
+      });
+    } catch {
+      if (!controller.signal.aborted) {
+        toast.error(t("Could not generate interview questions. Please try again."));
+      }
+    } finally {
+      if (requestRef.current === controller) {
+        requestRef.current = null;
+        setLoading(false);
+        setIsClicked(false);
+      }
+    }
   };
 
   const onManual = () => {
-    setLoading(true);
-
     const updatedInterviewData = {
       ...interviewData,
       name: name.trim(),
@@ -112,11 +146,13 @@ function DetailsPopup({
       description: "",
       is_anonymous: isAnonymous,
     };
-    setInterviewData(updatedInterviewData);
+    onQuestionsReady(updatedInterviewData);
   };
 
   useEffect(() => {
     if (!open) {
+      requestRef.current?.abort();
+      requestRef.current = null;
       setName("");
       setSelectedInterviewer(BigInt(0));
       setObjective("");
@@ -124,26 +160,29 @@ function DetailsPopup({
       setNumQuestions("");
       setDuration("");
       setIsClicked(false);
+      setUploadedDocumentContext("");
     }
   }, [open]);
+
+  useEffect(() => () => requestRef.current?.abort(), []);
 
   return (
     <>
       <div className="text-center w-[38rem]">
-        <h1 className="text-xl font-semibold">Create an Interview</h1>
+        <h1 className="text-xl font-semibold">{t("Create an Interview")}</h1>
         <div className="flex flex-col justify-center items-start mt-4 ml-10 mr-8">
           <div className="flex flex-row justify-center items-center">
-            <h3 className="text-sm font-medium">Interview Name:</h3>
+            <h3 className="text-sm font-medium">{t("Interview Name:")}</h3>
             <input
               type="text"
               className="border-b-2 focus:outline-none border-gray-500 px-2 w-96 py-0.5 ml-3"
-              placeholder="e.g. Name of the Interview"
+              placeholder={t("e.g. Name of the Interview")}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onBlur={(e) => setName(e.target.value.trim())}
             />
           </div>
-          <h3 className="text-sm mt-3 font-medium">Select an Interviewer:</h3>
+          <h3 className="text-sm mt-3 font-medium">{t("Select an Interviewer:")}</h3>
           <div className="relative flex items-center mt-1">
             <div
               id="slider-3"
@@ -174,13 +213,13 @@ function DetailsPopup({
                   >
                     <Image
                       src={item.image}
-                      alt="Picture of the interviewer"
+                      alt={t("Picture of the interviewer")}
                       width={70}
                       height={70}
                       className="w-full h-full object-cover"
                     />
                   </button>
-                  <CardTitle className="mt-0 text-xs text-center">{item.name}</CardTitle>
+                  <CardTitle className="mt-0 text-xs text-center">{t(item.name)}</CardTitle>
                 </div>
               ))}
             </div>
@@ -201,16 +240,18 @@ function DetailsPopup({
               <></>
             )}
           </div>
-          <h3 className="text-sm font-medium">Objective:</h3>
+          <h3 className="text-sm font-medium">{t("Objective:")}</h3>
           <Textarea
             value={objective}
             className="h-24 mt-2 border-2 border-gray-500 w-[33.2rem]"
-            placeholder="e.g. Find best candidates based on their technical skills and previous projects."
+            placeholder={t(
+              "e.g. Find best candidates based on their technical skills and previous projects.",
+            )}
             onChange={(e) => setObjective(e.target.value)}
             onBlur={(e) => setObjective(e.target.value.trim())}
           />
           <h3 className="text-sm font-medium mt-2">
-            Upload any documents related to the interview.
+            {t("Upload any documents related to the interview.")}
           </h3>
           <FileUpload
             isUploaded={isUploaded}
@@ -222,7 +263,7 @@ function DetailsPopup({
           <div className="flex-col mt-7 w-full">
             <div className="flex items-center cursor-pointer">
               <span className="text-sm font-medium">
-                Do you prefer the interviewees&apos; responses to be anonymous?
+                {t("Do you prefer the interviewees&apos; responses to be anonymous?")}
               </span>
               <Switch
                 checked={isAnonymous}
@@ -234,12 +275,14 @@ function DetailsPopup({
               style={{ fontSize: "0.7rem", lineHeight: "0.66rem" }}
               className="font-light text-xs italic w-full text-left block"
             >
-              Note: If not anonymous, the interviewee&apos;s email and name will be collected.
+              {t(
+                "Note: If not anonymous, the interviewee&apos;s email and name will be collected.",
+              )}
             </span>
           </div>
           <div className="flex flex-row gap-3 justify-between w-full mt-3">
             <div className="flex flex-row justify-center items-center ">
-              <h3 className="text-sm font-medium ">Number of Questions:</h3>
+              <h3 className="text-sm font-medium ">{t("Number of Questions:")}</h3>
               <input
                 type="number"
                 step="1"
@@ -259,7 +302,7 @@ function DetailsPopup({
               />
             </div>
             <div className="flex flex-row justify-center items-center">
-              <h3 className="text-sm font-medium ">Duration (mins):</h3>
+              <h3 className="text-sm font-medium ">{t("Duration (mins):")}</h3>
               <input
                 type="number"
                 step="1"
@@ -296,7 +339,7 @@ function DetailsPopup({
                 onGenrateQuestions();
               }}
             >
-              Generate Questions
+              {t("Generate Questions")}
             </Button>
             <Button
               disabled={
@@ -314,7 +357,7 @@ function DetailsPopup({
                 onManual();
               }}
             >
-              I&apos;ll do it myself
+              {t("I&apos;ll do it myself")}
             </Button>
           </div>
         </div>

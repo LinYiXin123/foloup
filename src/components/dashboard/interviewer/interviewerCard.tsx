@@ -1,6 +1,9 @@
+"use client";
+
 import Modal from "@/components/dashboard/Modal";
 import InterviewerDetailsModal from "@/components/dashboard/interviewer/interviewerDetailsModal";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/language.context";
 import type { Interviewer } from "@/types/interviewer";
 import Image from "next/image";
 import { useState } from "react";
@@ -10,6 +13,7 @@ interface Props {
 }
 
 const interviewerCard = ({ interviewer }: Props) => {
+  const { t } = useLanguage();
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const [open, setOpen] = useState(false);
 
@@ -23,13 +27,13 @@ const interviewerCard = ({ interviewer }: Props) => {
           <div className="w-full h-28 overflow-hidden">
             <Image
               src={interviewer.image}
-              alt="Picture of the interviewer"
+              alt={t("Picture of the interviewer")}
               width={200}
               height={40}
               className="w-full h-full object-cover object-center"
             />
           </div>
-          <CardTitle className="mt-3 text-base text-center">{interviewer.name}</CardTitle>
+          <CardTitle className="mt-3 text-base text-center">{t(interviewer.name)}</CardTitle>
         </CardContent>
       </Card>
       <Modal

@@ -1,8 +1,10 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language.context";
+
 import { parsePdf } from "@/actions/parse-pdf";
 import { Inbox } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
@@ -12,6 +14,7 @@ type Props = {
   fileName: string;
   setFileName: (fileName: string) => void;
   setUploadedDocumentContext: (context: string) => void;
+  onUploadingChange?: (uploading: boolean) => void;
 };
 
 function FileUpload({
@@ -20,45 +23,76 @@ function FileUpload({
   fileName,
   setFileName,
   setUploadedDocumentContext,
+  onUploadingChange,
 }: Props) {
+  const { t } = useLanguage();
   const [uploading, setUploading] = useState(false);
+  const requestId = useRef(0);
+
+  useEffect(
+    () => () => {
+      requestId.current += 1;
+    },
+    [],
+  );
+
+  const clearDocument = () => {
+    setIsUploaded(false);
+    setFileName("");
+    setUploadedDocumentContext("");
+  };
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const { getRootProps, getInputProps } = useDropzone({
     accept: { "application/pdf": [".pdf"] },
     maxFiles: 1,
+    maxSize: 10 * 1024 * 1024,
+    disabled: uploading,
+    onDropRejected: () => {
+      clearDocument();
+      toast.error(t("Please select one PDF file smaller than 10MB."));
+    },
     onDrop: async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
-      setFileName(file.name);
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Please upload a file smaller than 10MB.", {
-          position: "bottom-right",
-          duration: 3000,
-        });
-
+      if (!file) {
         return;
       }
+      const currentRequest = ++requestId.current;
+      clearDocument();
 
       try {
         setUploading(true);
+        onUploadingChange?.(true);
         const formData = new FormData();
         formData.append("file", file);
 
         const result = await parsePdf(formData);
+        if (currentRequest !== requestId.current) {
+          return;
+        }
         if (!result.success) {
           throw new Error(result.error);
         }
-        const fullText = result.text || "";
+        const fullText = result.text?.trim();
+        if (!fullText) {
+          throw new Error(t("No readable text found in the PDF."));
+        }
         setUploadedDocumentContext(fullText);
+        setFileName(file.name);
         setIsUploaded(true);
       } catch (error) {
-        console.log(error);
-        toast.error("Error reading PDF", {
-          description: "Please try again.",
+        if (currentRequest !== requestId.current) {
+          return;
+        }
+        toast.error(t("Error reading PDF"), {
+          description: error instanceof Error ? t(error.message) : t("Please try again."),
           duration: 3000,
         });
       } finally {
-        setUploading(false);
+        if (currentRequest === requestId.current) {
+          setUploading(false);
+          onUploadingChange?.(false);
+        }
       }
     },
   });
@@ -75,20 +109,24 @@ function FileUpload({
           <input {...getInputProps()} />
           <>
             <Inbox className="w-8 h-8 text-blue-500" />
-            <p className="mt-2 text-sm text-slate-400">Drop PDF Here</p>
+            <output className="mt-2 text-sm text-slate-400">
+              {uploading ? t("Reading PDF… Please wait") : t("Drop PDF Here")}
+            </output>
           </>
         </div>
       ) : (
         <div className="text-left">
-          <p className="mt-2 text-sm text-slate-600">File uploaded successfully. {fileName}</p>
+          <p className="mt-2 text-sm text-slate-600">
+            {t("File uploaded successfully.")} {fileName}
+          </p>
           <p className="mt-2 text-xs text-slate-600">
-            Do you want to{" "}
+            {t("Do you want to")}{" "}
             <button
               type="button"
               className="underline text-slate-950 cursor-pointer font-semibold"
-              onClick={() => setIsUploaded(false)}
+              onClick={clearDocument}
             >
-              Reupload?
+              {t("Reupload?")}
             </button>
           </p>
         </div>

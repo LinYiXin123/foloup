@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language.context";
+
 import {
   endMyOrganizationFreeTrial,
   getMyOrganization,
@@ -16,6 +18,7 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
 function Interviews() {
+  const { t } = useLanguage();
   const { interviews, interviewsLoading } = useInterviews();
   const { organization } = useOrganization();
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,9 +88,9 @@ function Interviews() {
   return (
     <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
       <div className="flex flex-col items-left">
-        <h2 className="mr-2 text-2xl font-semibold tracking-tight mt-8">My Interviews</h2>
+        <h2 className="mr-2 text-2xl font-semibold tracking-tight mt-8">{t("My Interviews")}</h2>
         <h3 className=" text-sm tracking-tight text-gray-600 font-medium ">
-          Start getting responses now!
+          {t("Start getting responses now!")}
         </h3>
         <div className="relative flex items-center mt-1 flex-wrap">
           {currentPlan === "free_trial_over" ? (
@@ -97,7 +100,7 @@ function Interviews() {
                   <Plus size={90} strokeWidth={0.5} className="text-gray-700" />
                 </div>
                 <CardTitle className="p-0 text-md text-center">
-                  You cannot create any more interviews unless you upgrade
+                  {t("You cannot create any more interviews unless you upgrade")}
                 </CardTitle>
               </CardContent>
             </Card>
@@ -114,16 +117,17 @@ function Interviews() {
                     <div className="flex justify-center text-indigo-600">
                       <Gem />
                     </div>
-                    <h3 className="text-xl font-semibold text-center">Upgrade to Pro</h3>
+                    <h3 className="text-xl font-semibold text-center">{t("Upgrade to Pro")}</h3>
                     <p className="text-l text-center">
-                      You have reached your limit for the free trial. Please upgrade to pro to
-                      continue using our features.
+                      {t(
+                        "You have reached your limit for the free trial. Please upgrade to pro to continue using our features.",
+                      )}
                     </p>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex justify-center items-center">
                         <Image
                           src={"/premium-plan-icon.png"}
-                          alt="Graphic"
+                          alt={t("Graphic")}
                           width={299}
                           height={300}
                         />
@@ -131,26 +135,26 @@ function Interviews() {
 
                       <div className="grid grid-rows-2 gap-2">
                         <div className="p-4 border rounded-lg">
-                          <h4 className="text-lg font-medium">Free Plan</h4>
+                          <h4 className="text-lg font-medium">{t("Free Plan")}</h4>
                           <ul className="list-disc pl-5 mt-2">
-                            <li>10 Responses</li>
-                            <li>Basic Support</li>
-                            <li>Limited Features</li>
+                            <li>{t("10 Responses")}</li>
+                            <li>{t("Basic Support")}</li>
+                            <li>{t("Limited Features")}</li>
                           </ul>
                         </div>
                         <div className="p-4 border rounded-lg">
-                          <h4 className="text-lg font-medium">Pro Plan</h4>
+                          <h4 className="text-lg font-medium">{t("Pro Plan")}</h4>
                           <ul className="list-disc pl-5 mt-2">
-                            <li>Flexible Pay-Per-Response</li>
-                            <li>Priority Support</li>
-                            <li>All Features</li>
+                            <li>{t("Flexible Pay-Per-Response")}</li>
+                            <li>{t("Priority Support")}</li>
+                            <li>{t("All Features")}</li>
                           </ul>
                         </div>
                       </div>
                     </div>
                     <p className="text-l text-center">
-                      Contact <span className="font-semibold">founders@folo-up.co</span> to upgrade
-                      your plan.
+                      {t("Contact")} <span className="font-semibold">founders@folo-up.co</span>{" "}
+                      {t("to upgrade your plan.")}
                     </p>
                   </div>
                 </Modal>

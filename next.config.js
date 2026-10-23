@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverActions: { bodySizeLimit: "11mb" },
+  },
   // Keep PDF.js beside its worker so server-side PDF parsing can load it.
   serverExternalPackages: ["pdfjs-dist"],
   outputFileTracingIncludes: {

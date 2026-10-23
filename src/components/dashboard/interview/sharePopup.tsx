@@ -1,6 +1,9 @@
+"use client";
+
 import Modal from "@/components/dashboard/Modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLanguage } from "@/contexts/language.context";
 import { Copy } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -12,10 +15,11 @@ interface SharePopupProps {
 }
 
 function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
+  const { t } = useLanguage();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedEmbed, setCopiedEmbed] = useState(false);
-  const [url, setUrl] = useState<string>("Loading...");
-  const [embedCode, setEmbedCode] = useState<string>("Loading...");
+  const [url, setUrl] = useState<string>(t("Loading..."));
+  const [embedCode, setEmbedCode] = useState<string>(t("Loading..."));
   const [activeTab, setActiveTab] = useState("copy");
 
   const [embedWidth, setEmbedWidth] = useState(1350);
@@ -35,7 +39,7 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
     navigator.clipboard.writeText(url).then(
       () => {
         setCopiedLink(true);
-        toast.success("The link to your interview has been copied to your clipboard.", {
+        toast.success(t("The link to your interview has been copied to your clipboard."), {
           position: "bottom-right",
           duration: 3000,
         });
@@ -52,10 +56,13 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
     navigator.clipboard.writeText(embedCode).then(
       () => {
         setCopiedEmbed(true);
-        toast.success("The embed HTML code for your interview has been copied to your clipboard.", {
-          position: "bottom-right",
-          duration: 3000,
-        });
+        toast.success(
+          t("The embed HTML code for your interview has been copied to your clipboard."),
+          {
+            position: "bottom-right",
+            duration: 3000,
+          },
+        );
 
         setTimeout(() => setCopiedEmbed(false), 2000);
         setTimeout(() => onClose(), 1000);
@@ -71,14 +78,14 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
   return (
     <Modal open={open} closeOnOutsideClick={false} onClose={onClose}>
       <div className="w-[28rem] flex flex-col">
-        <p className="text-lg font-semibold mb-4">Share via:</p>
+        <p className="text-lg font-semibold mb-4">{t("Share via:")}</p>
         <div className="h-auto rounded-xl">
           <Tabs value={activeTab} className="flex flex-col h-full" onValueChange={setActiveTab}>
             <div className="w-auto">
               <TabsList>
                 {/* <TabsTrigger value="mail">Mail</TabsTrigger> */}
-                <TabsTrigger value="copy">URL</TabsTrigger>
-                <TabsTrigger value="embed">Embed</TabsTrigger>
+                <TabsTrigger value="copy">{t("URL")}</TabsTrigger>
+                <TabsTrigger value="embed">{t("Embed")}</TabsTrigger>
               </TabsList>
             </div>
             <div>
@@ -94,7 +101,7 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                 </div>
                 <Button className="flex items-center bg-indigo-600" onClick={copyLinkToClipboard}>
                   <Copy size={16} className="mr-2" />
-                  {copiedLink ? "Copied" : "Copy URL"}
+                  {copiedLink ? t("Copied") : t("Copy URL")}
                 </Button>
               </TabsContent>
               <TabsContent value="embed" className="w-full">
@@ -109,13 +116,13 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                 <div className="flex space-x-4 mb-4">
                   <div className="flex flex-col w-1/2">
                     <label htmlFor="width" className="mb-1">
-                      Width (px)
+                      {t("Width (px)")}
                     </label>
                     <input
                       id="width"
                       type="number"
                       min="1050"
-                      placeholder="Width"
+                      placeholder={t("Width")}
                       value={embedWidth}
                       className="w-full p-2 border border-gray-300 rounded"
                       onChange={(e) => setEmbedWidth(Number(e.target.value))}
@@ -127,13 +134,13 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                   </div>
                   <div className="flex flex-col w-1/2">
                     <label htmlFor="height" className="mb-1">
-                      Height (px)
+                      {t("Height (px)")}
                     </label>
                     <input
                       id="height"
                       type="number"
                       min="700"
-                      placeholder="Height"
+                      placeholder={t("Height")}
                       value={embedHeight}
                       className="w-full p-2 border border-gray-300 rounded"
                       onChange={(e) => setEmbedHeight(Number(e.target.value))}
@@ -146,7 +153,7 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
                 </div>
                 <Button className="flex items-center bg-indigo-600" onClick={copyEmbedToClipboard}>
                   <Copy size={16} className="mr-2" />
-                  {copiedEmbed ? "Copied" : "Copy Embed Code"}
+                  {copiedEmbed ? t("Copied") : t("Copy Embed Code")}
                 </Button>
               </TabsContent>
             </div>

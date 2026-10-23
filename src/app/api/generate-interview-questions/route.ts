@@ -1,8 +1,8 @@
 import { requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createOpenAIClient, getOpenAIModel } from "@/lib/openai";
 import { SYSTEM_PROMPT, generateQuestionsPrompt } from "@/lib/prompts/generate-questions";
 import { NextResponse } from "next/server";
-import { OpenAI } from "openai";
 
 export const maxDuration = 60;
 
@@ -14,15 +14,11 @@ export async function POST(req: Request) {
   }
   const body = await req.json();
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    maxRetries: 5,
-    dangerouslyAllowBrowser: true,
-  });
+  const openai = createOpenAIClient();
 
   try {
     const baseCompletion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: getOpenAIModel(),
       messages: [
         {
           role: "system",

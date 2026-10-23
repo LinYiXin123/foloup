@@ -2,7 +2,7 @@
 
 import { createCustomInterviewer, getInterviewers } from "@/actions/dashboard";
 import type { Interviewer } from "@/types/interviewer";
-import { useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import React, { useState, useContext, type ReactNode, useEffect } from "react";
 
 interface InterviewerContextProps {
@@ -27,7 +27,7 @@ interface InterviewerProviderProps {
 
 export function InterviewerProvider({ children }: InterviewerProviderProps) {
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
-  const { user } = useClerk();
+  const { user } = useUser();
   const [interviewersLoading, setInterviewersLoading] = useState(true);
 
   const fetchInterviewers = async () => {

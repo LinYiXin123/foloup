@@ -1,10 +1,13 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language.context";
+
 import { PlayCircleIcon, SpeechIcon } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 function SideMenu() {
+  const { t } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -22,7 +25,7 @@ function SideMenu() {
             onClick={() => router.push("/dashboard")}
           >
             <PlayCircleIcon className="font-thin	 mr-2" />
-            <p className="font-medium ">Interviews</p>
+            <p className="font-medium ">{t("Interviews")}</p>
           </button>
           <button
             type="button"
@@ -32,7 +35,7 @@ function SideMenu() {
             onClick={() => router.push("/dashboard/interviewers")}
           >
             <SpeechIcon className="font-thin mr-2" />
-            <p className="font-medium ">Interviewers</p>
+            <p className="font-medium ">{t("Interviewers")}</p>
           </button>
         </div>
       </div>

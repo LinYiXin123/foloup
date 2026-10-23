@@ -1,6 +1,9 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useLanguage } from "@/contexts/language.context";
 import type { Question } from "@/types/interview";
 import { Trash2 } from "lucide-react";
 
@@ -17,14 +20,17 @@ const questionCard = ({
   onQuestionChange,
   onDelete,
 }: QuestionCardProps) => {
+  const { t } = useLanguage();
   return (
     <>
       <Card className=" shadow-md mb-5 pb-3 ">
         <CardContent className="p-2 mx-5">
           <div className="flex flex-row justify-between mt-3 items-baseline ">
-            <CardTitle className="text-lg">Question {questionNumber}</CardTitle>
+            <CardTitle className="text-lg">
+              {t("Question")} {questionNumber}
+            </CardTitle>
             <div className="flex flex-row items-start space-x-1">
-              <h3 className="text-base font-semibold mr-2">Depth Level: </h3>
+              <h3 className="text-base font-semibold mr-2">{t("Depth Level:")} </h3>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -39,11 +45,11 @@ const questionCard = ({
                         })
                       }
                     >
-                      Low
+                      {t("Low")}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">Brief follow-up</p>
+                    <p className="text-zinc-800">{t("Brief follow-up")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -62,11 +68,11 @@ const questionCard = ({
                         })
                       }
                     >
-                      Medium
+                      {t("Medium")}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">Moderate follow-up</p>
+                    <p className="text-zinc-800">{t("Moderate follow-up")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -85,11 +91,11 @@ const questionCard = ({
                         })
                       }
                     >
-                      High
+                      {t("High")}
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent className="bg-zinc-200">
-                    <p className="text-zinc-800">In-depth follow-up</p>
+                    <p className="text-zinc-800">{t("In-depth follow-up")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -99,7 +105,7 @@ const questionCard = ({
             <textarea
               value={questionData?.question}
               className="h-fit mt-3 pt-1 border-2 rounded-md w-full px-2 border-gray-400"
-              placeholder="e.g. Can you tell me about a challenging project you’ve worked on?"
+              placeholder={t("e.g. Can you tell me about a challenging project you’ve worked on?")}
               rows={3}
               onChange={(e) =>
                 onQuestionChange(questionData.id, {

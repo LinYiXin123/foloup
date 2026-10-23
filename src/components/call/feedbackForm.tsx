@@ -1,5 +1,8 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useLanguage } from "@/contexts/language.context";
 import type { FeedbackData } from "@/types/response";
 import React, { useState } from "react";
 
@@ -15,6 +18,7 @@ interface FeedbackFormProps {
 }
 
 export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
+  const { t } = useLanguage();
   const [satisfaction, setSatisfaction] = useState<SatisfactionLevel>(SatisfactionLevel.Moderate);
   const [feedback, setFeedback] = useState("");
 
@@ -30,7 +34,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
 
   return (
     <div className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Are you satisfied with the platform?</h3>
+      <h3 className="text-lg font-semibold mb-4">{t("Are you satisfied with the platform?")}</h3>
       <div className="flex justify-center space-x-4 mb-4">
         {Object.values(SatisfactionLevel).map((emoji) => (
           <button
@@ -45,7 +49,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
       </div>
       <Textarea
         value={feedback}
-        placeholder="Add your feedback here"
+        placeholder={t("Add your feedback here")}
         className="mb-4"
         onChange={(e) => setFeedback(e.target.value)}
       />
@@ -54,7 +58,7 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
         className="w-full bg-indigo-600 text-white"
         onClick={handleSubmit}
       >
-        Submit Feedback
+        {t("Submit Feedback")}
       </Button>
     </div>
   );

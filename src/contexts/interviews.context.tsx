@@ -2,7 +2,7 @@
 
 import { getMyInterview, getMyInterviews } from "@/actions/dashboard";
 import type { Interview } from "@/types/interview";
-import { useClerk, useOrganization } from "@clerk/nextjs";
+import { useOrganization, useUser } from "@clerk/nextjs";
 import React, { useState, useContext, type ReactNode, useEffect } from "react";
 
 interface InterviewContextProps {
@@ -29,7 +29,7 @@ interface InterviewProviderProps {
 
 export function InterviewProvider({ children }: InterviewProviderProps) {
   const [interviews, setInterviews] = useState<Interview[]>([]);
-  const { user } = useClerk();
+  const { user } = useUser();
   const { organization } = useOrganization();
   const [interviewsLoading, setInterviewsLoading] = useState(false);
 

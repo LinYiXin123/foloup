@@ -5,6 +5,7 @@
 // never from its arguments.
 
 import { canAccessInterview, getSignedInUser } from "@/lib/auth";
+import { reconcileInterviewCalls } from "@/services/call-reconciliation.service";
 import { ClientService } from "@/services/clients.service";
 import { InterviewerService } from "@/services/interviewers.service";
 import { InterviewService } from "@/services/interviews.service";
@@ -102,6 +103,7 @@ export async function deleteMyInterview(interviewId: string) {
 
 export async function getMyInterviewResponses(interviewId: string) {
   const interview = await getOwnedInterview(interviewId);
+  await reconcileInterviewCalls(interview.id);
 
   return ResponseService.getAllResponses(interview.id);
 }

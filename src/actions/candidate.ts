@@ -24,7 +24,18 @@ export type PublicInterview = Pick<
 >;
 
 export async function getPublicInterview(interviewId: string): Promise<PublicInterview | null> {
-  const interview: Interview | null = await InterviewService.getInterviewById(interviewId);
+  let interview: Interview | null = await InterviewService.getInterviewById(interviewId);
+  if (!interview?.id) {
+    let decodedId: string;
+    try {
+      decodedId = decodeURIComponent(interviewId);
+    } catch {
+      return null;
+    }
+    if (decodedId !== interviewId) {
+      interview = await InterviewService.getInterviewById(decodedId);
+    }
+  }
   if (!interview?.id) {
     return null;
   }

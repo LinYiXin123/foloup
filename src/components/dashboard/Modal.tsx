@@ -23,7 +23,7 @@ export default function Modal({ open, onClose, closeOnOutsideClick = true, child
       role="presentation"
     >
       <div
-        className={`bg-white rounded-xl shadow p-6 transition-all
+        className={`relative max-h-[calc(100dvh-2rem)] overflow-y-auto bg-white rounded-xl shadow p-6 transition-all
         ${open ? "scale-100 opacity-100" : "scale-125 opacity-0"}
         `}
         onClick={(e) => e.stopPropagation()}

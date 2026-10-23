@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   let callResponse = callDetails.details;
-  if (callDetails.is_analysed) {
+  if (callDetails.is_analysed && callDetails.analytics) {
     return NextResponse.json(
       {
         callResponse,
@@ -38,6 +38,21 @@ export async function POST(req: Request) {
     );
   }
   const callOutput = await retell.call.retrieve(body.id);
+  if (callOutput.call_status !== "ended" || !callOutput.transcript?.trim()) {
+    return NextResponse.json(
+      { error: "The interview must finish and have a transcript before it can be analysed." },
+      { status: 409 },
+    );
+  }
+  if (
+    typeof callOutput.start_timestamp !== "number" ||
+    typeof callOutput.end_timestamp !== "number" ||
+    !Number.isFinite(callOutput.start_timestamp) ||
+    !Number.isFinite(callOutput.end_timestamp) ||
+    callOutput.end_timestamp < callOutput.start_timestamp
+  ) {
+    return NextResponse.json({ error: "Call timing is not ready yet." }, { status: 409 });
+  }
   const interviewId = callDetails?.interview_id;
   callResponse = callOutput;
   const duration = Math.round(
@@ -50,12 +65,21 @@ export async function POST(req: Request) {
     transcript: callResponse.transcript,
   };
   const result = await generateInterviewAnalytics(payload);
+  if (result.status !== 200 || !result.analytics) {
+    logger.error("Call analysis failed; the response remains available for retry");
+
+    return NextResponse.json(
+      { error: "Could not analyse the interview. Please try again." },
+      { status: 502 },
+    );
+  }
 
   const analytics = result.analytics;
 
   await ResponseService.saveResponse(
     {
       details: callResponse,
+      is_ended: true,
       is_analysed: true,
       duration: duration,
       analytics: analytics,

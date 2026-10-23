@@ -1,11 +1,14 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language.context";
+
 import { Card, CardContent } from "@/components/ui/card";
 import axios from "axios";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
 
 function CreateInterviewerButton() {
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
 
   const createInterviewers = async () => {
@@ -32,7 +35,7 @@ function CreateInterviewerButton() {
             </div>
           )}
           <p className="my-3 mx-auto text-xs text-wrap w-fit text-center">
-            Create two Default Interviewers
+            {t("Create two Default Interviewers")}
           </p>
         </CardContent>
       </Card>

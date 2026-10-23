@@ -4,18 +4,23 @@ import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export async function parsePdf(formData: FormData) {
   try {
-    const file = formData.get("file") as File;
+    const file = formData.get("file");
 
-    if (!file) {
-      throw new Error("No file provided");
+    if (!(file instanceof File) || file.size === 0) {
+      return { success: false, error: "Please select a non-empty PDF file." };
     }
     // Candidates call this from the public interview page, so enforce the limit here too.
     if (file.size > 10 * 1024 * 1024) {
-      throw new Error("File too large");
+      return { success: false, error: "Please upload a PDF smaller than 10MB." };
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!new TextDecoder().decode(bytes.subarray(0, 1024)).includes("%PDF-")) {
+      return { success: false, error: "This file is not a valid PDF." };
     }
 
     const loadingTask = getDocument({
-      data: new Uint8Array(await file.arrayBuffer()),
+      data: bytes,
       useWorkerFetch: false,
       isEvalSupported: false,
       useSystemFonts: true,
@@ -43,7 +48,16 @@ export async function parsePdf(formData: FormData) {
         pages.push(textItems.join(""));
       }
 
-      return { success: true, text: pages.join("\n") };
+      const text = pages.join("\n").trim();
+      if (!text) {
+        return {
+          success: false,
+          error:
+            "No readable text found. Please use a text PDF or run OCR on the scanned resume first.",
+        };
+      }
+
+      return { success: true, text };
     } finally {
       await loadingTask.destroy();
     }

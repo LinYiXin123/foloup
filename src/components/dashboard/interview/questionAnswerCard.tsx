@@ -1,4 +1,7 @@
+"use client";
+
 import { CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/language.context";
 
 interface QuestionCardProps {
   questionNumber: number;
@@ -7,6 +10,7 @@ interface QuestionCardProps {
 }
 
 function QuestionAnswerCard({ questionNumber, question, answer }: QuestionCardProps) {
+  const { t } = useLanguage();
   return (
     <>
       <div className=" shadow-md mb-2 bg-slate-50 rounded-2xl py-2">
@@ -16,7 +20,7 @@ function QuestionAnswerCard({ questionNumber, question, answer }: QuestionCardPr
           </CardTitle>
           <div className="flex flex-col p-1">
             <p className="font-medium">{question}</p>
-            <p>{answer}</p>
+            <p>{answer === "Not Answered" ? t("Not Answered") : answer}</p>
           </div>
         </div>
       </div>

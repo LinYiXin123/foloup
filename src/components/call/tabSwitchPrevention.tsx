@@ -1,3 +1,5 @@
+"use client";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -7,6 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useLanguage } from "@/contexts/language.context";
 import React, { useEffect, useState } from "react";
 
 const useTabSwitchPrevention = () => {
@@ -36,15 +39,16 @@ const useTabSwitchPrevention = () => {
 };
 
 function TabSwitchWarning() {
+  const { t } = useLanguage();
   const { isDialogOpen, handleUnderstand } = useTabSwitchPrevention();
 
   return (
     <AlertDialog open={isDialogOpen}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Warning: Tab Switching</AlertDialogTitle>
+          <AlertDialogTitle>{t("Warning: Tab Switching")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Switching tabs may degrade your interview performance. Tab switching is tracked.
+            {t("Switching tabs may degrade your interview performance. Tab switching is tracked.")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -52,7 +56,7 @@ function TabSwitchWarning() {
             className="bg-indigo-400 hover:bg-indigo-600 text-white"
             onClick={handleUnderstand}
           >
-            I understand
+            {t("I understand")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

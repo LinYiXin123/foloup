@@ -32,13 +32,11 @@ function CreateInterviewModal({ open, setOpen }: Props) {
   const [isUploaded, setIsUploaded] = useState(false);
   const [fileName, setFileName] = useState("");
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to check
-  useEffect(() => {
-    if (loading === true) {
-      setLoading(false);
-      setProceed(true);
-    }
-  }, [interviewData, loading]);
+  const handleQuestionsReady = (data: InterviewBase) => {
+    setInterviewData(data);
+    setLoading(false);
+    setProceed(true);
+  };
 
   useEffect(() => {
     if (!open) {
@@ -54,23 +52,27 @@ function CreateInterviewModal({ open, setOpen }: Props) {
 
   return (
     <>
-      {loading ? (
+      {!proceed && (
+        <div hidden={loading}>
+          <DetailsPopup
+            open={open}
+            setLoading={setLoading}
+            interviewData={interviewData}
+            onQuestionsReady={handleQuestionsReady}
+            // Below for File Upload
+            isUploaded={isUploaded}
+            setIsUploaded={setIsUploaded}
+            fileName={fileName}
+            setFileName={setFileName}
+          />
+        </div>
+      )}
+      {loading && (
         <div className="w-[38rem] h-[35.3rem]">
           <LoaderWithLogo />
         </div>
-      ) : !proceed ? (
-        <DetailsPopup
-          open={open}
-          setLoading={setLoading}
-          interviewData={interviewData}
-          setInterviewData={setInterviewData}
-          // Below for File Upload
-          isUploaded={isUploaded}
-          setIsUploaded={setIsUploaded}
-          fileName={fileName}
-          setFileName={setFileName}
-        />
-      ) : (
+      )}
+      {proceed && (
         <QuestionsPopup interviewData={interviewData} setProceed={setProceed} setOpen={setOpen} />
       )}
     </>

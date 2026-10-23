@@ -37,7 +37,6 @@ const getAllResponses = async (interviewId: string) => {
       .from("response")
       .select("*")
       .eq("interview_id", interviewId)
-      .or("details.is.null, details->call_analysis.not.is.null")
       .eq("is_ended", true)
       .order("created_at", { ascending: false });
 
@@ -47,6 +46,21 @@ const getAllResponses = async (interviewId: string) => {
 
     return [];
   }
+};
+
+const getPendingCalls = async (interviewId: string) => {
+  const { data, error } = await supabase
+    .from("response")
+    .select("call_id")
+    .eq("interview_id", interviewId)
+    .or("is_ended.is.null,is_ended.eq.false")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error("Could not load pending interview calls");
+  }
+
+  return data || [];
 };
 
 const getResponseCountByOrganizationId = async (organizationId: string): Promise<number> => {
@@ -121,6 +135,7 @@ export const ResponseService = {
   saveResponse,
   updateResponse,
   getAllResponses,
+  getPendingCalls,
   getResponseByCallId,
   deleteResponse,
   getResponseCountByOrganizationId,

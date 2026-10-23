@@ -1,3 +1,5 @@
+"use client";
+
 import Modal from "@/components/dashboard/Modal";
 import { avatars } from "@/components/dashboard/interviewer/avatars";
 import { Button } from "@/components/ui/button";
@@ -5,6 +7,7 @@ import { CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Slider } from "@/components/ui/slider";
 import { useInterviewers } from "@/contexts/interviewers.context";
+import { useLanguage } from "@/contexts/language.context";
 import { useClerk } from "@clerk/nextjs";
 import { Image as LucideImage } from "lucide-react";
 import { Plus } from "lucide-react";
@@ -14,6 +17,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 
 const createInterviewerCard = () => {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [gallery, setGallery] = useState(false);
   const [name, setName] = useState("");
@@ -81,7 +85,7 @@ const createInterviewerCard = () => {
       >
         <div className="text-center w-[35rem]">
           <CardTitle className="text-2xl text mt-0 mb-4 p-0 font-semibold ">
-            Create an interviewer yourself!
+            {t("Create an interviewer yourself!")}
           </CardTitle>
           <div className="mt-3 p-2 flex flex-row justify-center space-x-10 items-center">
             <button
@@ -92,7 +96,7 @@ const createInterviewerCard = () => {
               {image ? (
                 <Image
                   src={image}
-                  alt="Picture of the interviewer"
+                  alt={t("Picture of the interviewer")}
                   width={200}
                   height={40}
                   className="w-full h-full object-cover object-center"
@@ -101,26 +105,26 @@ const createInterviewerCard = () => {
                 <div>
                   <LucideImage className="mt-3 text-gray-300" size={100} strokeWidth={0.7} />
                   <h4 className="text-xs text-center font-medium text-gray-400">
-                    Choose an Avatar
+                    {t("Choose an Avatar")}
                   </h4>
                 </div>
               )}
             </button>
             <div className="flex flex-col justify-center items-start ml-4">
               <div className="flex flex-row justify-center items-center">
-                <h3 className="text-lg font-medium">Name</h3>
+                <h3 className="text-lg font-medium">{t("Name")}</h3>
                 <input
                   type="text"
                   className="border-b-2 focus:outline-none border-gray-500 px-2 py-0.5 ml-3 w-[12.5rem]"
-                  placeholder="e.g. Empathetic Bob"
+                  placeholder={t("e.g. Empathetic Bob")}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
-              <h3 className="text-lg mt-3 font-medium">Interviewer Settings</h3>
+              <h3 className="text-lg mt-3 font-medium">{t("Interviewer Settings")}</h3>
               <div className="ml-5 mt-2 flex flex-col justify-start items-start">
                 <div className="flex flex-row justify-between items-center mb-2">
-                  <h4 className="w-20 text-left">Empathy</h4>
+                  <h4 className="w-20 text-left">{t("Empathy")}</h4>
                   <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                     <Slider
                       value={[empathy]}
@@ -132,7 +136,7 @@ const createInterviewerCard = () => {
                   </div>
                 </div>
                 <div className="flex flex-row justify-between items-center mb-2">
-                  <h4 className="w-20 text-left">Rapport</h4>
+                  <h4 className="w-20 text-left">{t("Rapport")}</h4>
                   <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                     <Slider
                       value={[rapport]}
@@ -144,7 +148,7 @@ const createInterviewerCard = () => {
                   </div>
                 </div>
                 <div className="flex flex-row justify-between items-center mb-2">
-                  <h4 className="w-20 text-left">Exploration</h4>
+                  <h4 className="w-20 text-left">{t("Exploration")}</h4>
                   <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                     <Slider
                       value={[exploration]}
@@ -156,7 +160,7 @@ const createInterviewerCard = () => {
                   </div>
                 </div>
                 <div className="flex flex-row justify-between items-center mb-2">
-                  <h4 className="w-20 text-left">Speed</h4>
+                  <h4 className="w-20 text-left">{t("Speed")}</h4>
                   <div className="w-40 space-x-3 ml-3 flex justify-between items-center">
                     <Slider
                       value={[speed]}
@@ -179,7 +183,7 @@ const createInterviewerCard = () => {
                 onSave();
               }}
             >
-              Save
+              {t("Save")}
             </Button>
           </div>
         </div>
@@ -192,7 +196,9 @@ const createInterviewerCard = () => {
         }}
       >
         <div className="text-left w-[20rem]">
-          <CardTitle className="text-xl text mt-0 p-0 font-semibold ">Select an Avatar</CardTitle>
+          <CardTitle className="text-xl text mt-0 p-0 font-semibold ">
+            {t("Select an Avatar")}
+          </CardTitle>
           <ScrollArea className="mt-3 h-96">
             <div className="flex flex-row flex-wrap justify-center items-center">
               {avatars.map((item) => (
@@ -205,7 +211,7 @@ const createInterviewerCard = () => {
                     setGallery(false);
                   }}
                 >
-                  <Image alt="avatar" width={125} height={100} src={item.img} />
+                  <Image alt={t("avatar")} width={125} height={100} src={item.img} />
                 </button>
               ))}
             </div>

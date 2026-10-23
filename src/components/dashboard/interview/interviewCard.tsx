@@ -1,8 +1,11 @@
+"use client";
+
 import { getInterviewerImage } from "@/actions/candidate";
 import { getMyInterviewResponses } from "@/actions/dashboard";
 import MiniLoader from "@/components/loaders/mini-loader/miniLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useLanguage } from "@/contexts/language.context";
 import axios from "axios";
 import { ArrowUpRight, Copy } from "lucide-react";
 import { CopyCheck } from "lucide-react";
@@ -21,6 +24,7 @@ interface Props {
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
 function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
+  const { t } = useLanguage();
   const [copied, setCopied] = useState(false);
   const [responseCount, setResponseCount] = useState<number | null>(null);
   const [isFetching, setIsFetching] = useState(false);
@@ -78,7 +82,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
       .then(
         () => {
           setCopied(true);
-          toast.success("The link to your interview has been copied to your clipboard.", {
+          toast.success(t("The link to your interview has been copied to your clipboard."), {
             position: "bottom-right",
             duration: 3000,
           });
@@ -123,14 +127,15 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
             <div className="w-full overflow-hidden">
               <Image
                 src={img}
-                alt="Picture of the interviewer"
+                alt={t("Picture of the interviewer")}
                 width={70}
                 height={70}
                 className="object-cover object-center"
               />
             </div>
             <div className="text-black text-sm font-semibold mt-2 mr-2 whitespace-nowrap">
-              Responses: <span className="font-normal">{responseCount?.toString() || 0}</span>
+              {t("Responses:")}{" "}
+              <span className="font-normal">{responseCount?.toString() || 0}</span>
             </div>
           </div>
           <div className="absolute top-2 right-2 flex gap-1">

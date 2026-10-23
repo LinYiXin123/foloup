@@ -10,10 +10,9 @@ import type { ThemeProviderProps } from "next-themes/dist/types";
 import React from "react";
 
 const queryClient = new QueryClient();
+const Provider = compose([InterviewProvider, InterviewerProvider, ClientProvider]);
 
 const providers = ({ children }: ThemeProviderProps) => {
-  const Provider = compose([InterviewProvider, InterviewerProvider, ClientProvider]);
-
   return (
     <NextThemesProvider attribute="class" defaultTheme="light">
       <QueryClientProvider client={queryClient}>

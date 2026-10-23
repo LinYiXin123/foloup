@@ -78,6 +78,12 @@ export async function POST(req: Request) {
   } catch (error) {
     // The interview still works with the old prompt, just without resume tailoring.
     logger.error("Could not sync interviewer prompt");
+    if (resume) {
+      return NextResponse.json(
+        { error: "Could not prepare the resume-based interview. Please try again." },
+        { status: 503 },
+      );
+    }
   }
 
   const registerCallResponse = await retellClient.call.createWebCall({

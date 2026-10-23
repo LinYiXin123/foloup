@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/contexts/language.context";
+
 import { type PublicInterview, getPublicInterview } from "@/actions/candidate";
 import Call from "@/components/call";
 import LoaderWithText from "@/components/loaders/loader-with-text/loaderWithText";
@@ -20,6 +22,7 @@ type PopupProps = {
 };
 
 function PopupLoader() {
+  const { t } = useLanguage();
   return (
     <div className="bg-white rounded-md absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 md:w-[80%] w-[90%]">
       <div className="h-[88vh] justify-center items-center rounded-lg border-2 border-b-4 border-r-4 border-black font-bold transition-all md:block dark:border-white">
@@ -34,7 +37,7 @@ function PopupLoader() {
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
-          Powered by{" "}
+          {t("Powered by")}{" "}
           <span className="font-bold">
             Folo<span className="text-indigo-600">Up</span>
           </span>
@@ -46,11 +49,12 @@ function PopupLoader() {
 }
 
 function PopUpMessage({ title, description, image }: PopupProps) {
+  const { t } = useLanguage();
   return (
     <div className="bg-white rounded-md absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2 md:w-[80%] w-[90%]">
       <div className="h-[88vh] content-center rounded-lg border-2 border-b-4 border-r-4 border-black font-bold transition-all  md:block dark:border-white ">
         <div className="flex flex-col items-center justify-center my-auto">
-          <Image src={image} alt="Graphic" width={200} height={200} className="mb-4" />
+          <Image src={image} alt={t("Graphic")} width={200} height={200} className="mb-4" />
           <h1 className="text-md font-medium mb-2">{title}</h1>
           <p>{description}</p>
         </div>
@@ -62,7 +66,7 @@ function PopUpMessage({ title, description, image }: PopupProps) {
         rel="noopener noreferrer"
       >
         <div className="text-center text-md font-semibold mr-2">
-          Powered by{" "}
+          {t("Powered by")}{" "}
           <span className="font-bold">
             Folo<span className="text-indigo-600">Up</span>
           </span>
@@ -74,6 +78,7 @@ function PopUpMessage({ title, description, image }: PopupProps) {
 }
 
 function InterviewInterface({ params }: Props) {
+  const { t } = useLanguage();
   const resolvedParams = use(params);
   const [interview, setInterview] = useState<PublicInterview>();
   const [isActive, setIsActive] = useState(true);
@@ -105,12 +110,14 @@ function InterviewInterface({ params }: Props) {
 
   return (
     <div>
-      <div className="hidden md:block p-8 mx-auto form-container">
+      <div className="hidden sm:block p-8 mx-auto form-container">
         {!interview ? (
           interviewNotFound ? (
             <PopUpMessage
-              title="Invalid URL"
-              description="The interview link you're trying to access is invalid. Please check the URL and try again."
+              title={t("Invalid URL")}
+              description={t(
+                "The interview link you're trying to access is invalid. Please check the URL and try again.",
+              )}
               image="/invalid-url.png"
             />
           ) : (
@@ -118,23 +125,25 @@ function InterviewInterface({ params }: Props) {
           )
         ) : !isActive ? (
           <PopUpMessage
-            title="Interview Is Unavailable"
-            description="We are not currently accepting responses. Please contact the sender for more information."
+            title={t("Interview Is Unavailable")}
+            description={t(
+              "We are not currently accepting responses. Please contact the sender for more information.",
+            )}
             image="/closed.png"
           />
         ) : (
           <Call interview={interview} />
         )}
       </div>
-      <div className=" md:hidden flex flex-col items-center md:h-[0px] justify-center  my-auto">
+      <div className="sm:hidden flex flex-col items-center sm:h-[0px] justify-center my-auto">
         <div className="mt-48 px-3">
           <p className="text-center my-5 text-md font-semibold">{interview?.name}</p>
           <p className="text-center text-gray-600 my-5">
-            Please use a PC to respond to the interview. Apologies for any inconvenience caused.{" "}
+            {t("Please widen your browser window or use a larger screen to start the interview.")}
           </p>
         </div>
         <div className="text-center text-md font-semibold mr-2 my-5">
-          Powered by{" "}
+          {t("Powered by")}{" "}
           <a className="font-bold underline" href="www.folo-up.co" target="_blank" rel="noreferrer">
             Folo<span className="text-indigo-600">Up</span>
           </a>

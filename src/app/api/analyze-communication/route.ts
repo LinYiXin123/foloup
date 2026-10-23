@@ -1,11 +1,11 @@
 import { requireUser } from "@/lib/auth";
 import { logger } from "@/lib/logger";
+import { createOpenAIClient, getOpenAIModel } from "@/lib/openai";
 import {
   SYSTEM_PROMPT,
   getCommunicationAnalysisPrompt,
 } from "@/lib/prompts/communication-analysis";
 import { NextResponse } from "next/server";
-import { OpenAI } from "openai";
 
 export async function POST(req: Request) {
   logger.info("analyze-communication request received");
@@ -22,14 +22,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Transcript is required" }, { status: 400 });
     }
 
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      maxRetries: 5,
-      dangerouslyAllowBrowser: true,
-    });
+    const openai = createOpenAIClient();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: getOpenAIModel(),
       messages: [
         {
           role: "system",
