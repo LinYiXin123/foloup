@@ -50,11 +50,6 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
     negative: 0,
     neutral: 0,
   });
-  const [callCompletion, setCallCompletion] = useState({
-    complete: 0,
-    incomplete: 0,
-    partial: 0,
-  });
 
   const totalResponses = responses.length;
 
@@ -102,12 +97,6 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
       neutral: 0,
     };
 
-    const callCompletionCounter = {
-      complete: 0,
-      incomplete: 0,
-      partial: 0,
-    };
-
     let totalDuration = 0;
     let completedCount = 0;
 
@@ -128,17 +117,13 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
         sentimentCounter.neutral += 1;
       }
 
-      const callCompletion = response.details?.call_analysis?.call_completion_rating;
-      if (callCompletion === "Complete") {
-        callCompletionCounter.complete += 1;
-      } else if (callCompletion === "Incomplete") {
-        callCompletionCounter.incomplete += 1;
-      } else if (callCompletion === "Partial") {
-        callCompletionCounter.partial += 1;
-      }
-
-      const agentTaskCompletion = response.details?.call_analysis?.agent_task_completion_rating;
-      if (agentTaskCompletion === "Complete" || agentTaskCompletion === "Partial") {
+      const analysis = response.details?.call_analysis;
+      const agentTaskCompletion = analysis?.agent_task_completion_rating;
+      if (
+        analysis?.call_successful === true ||
+        (typeof analysis?.call_successful !== "boolean" &&
+          (agentTaskCompletion === "Complete" || agentTaskCompletion === "Partial"))
+      ) {
         completedCount += 1;
       }
 
@@ -149,7 +134,6 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
     }
 
     setSentimentCount(sentimentCounter);
-    setCallCompletion(callCompletionCounter);
     setTotalDuration(totalDuration);
     setCompletedInterviews(completedCount);
     setCandidateStatusCount(statusCounter);

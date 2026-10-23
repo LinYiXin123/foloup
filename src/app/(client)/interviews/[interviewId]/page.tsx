@@ -27,6 +27,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CandidateStatus } from "@/lib/enum";
+import { getInterviewUrl } from "@/lib/interview-url";
 import { formatTimestampToDateHHMM } from "@/lib/utils";
 import type { Interview } from "@/types/interview";
 import type { Response } from "@/types/response";
@@ -71,16 +72,11 @@ function InterviewHome({ params, searchParams }: Props) {
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
 
   const seeInterviewPreviewPage = () => {
-    const configuredBase = base_url || window.location.origin;
-    const previewBase = /^https?:\/\//i.test(configuredBase)
-      ? configuredBase
-      : `${configuredBase.includes("localhost") ? "http" : "https"}://${configuredBase}`;
-    if (interview?.url) {
-      const url = interview?.readable_slug
-        ? new URL(`/call/${encodeURIComponent(interview.readable_slug)}`, previewBase).toString()
-        : interview.url.startsWith("http")
-          ? interview.url
-          : `https://${interview.url}`;
+    if (interview) {
+      const url = getInterviewUrl(
+        interview.readable_slug || interview.id,
+        base_url || interview.url || window.location.origin,
+      );
       window.open(url, "_blank");
     } else {
       console.error("Interview URL is null or undefined.");
@@ -176,9 +172,8 @@ function InterviewHome({ params, searchParams }: Props) {
   const handleToggle = async () => {
     try {
       const updatedIsActive = !isActive;
-      setIsActive(updatedIsActive);
-
       await updateMyInterview(resolvedParams.interviewId, { is_active: updatedIsActive });
+      setIsActive(updatedIsActive);
 
       toast.success(t("Interview status updated"), {
         description: t(
@@ -283,6 +278,7 @@ function InterviewHome({ params, searchParams }: Props) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    aria-label={t("Share")}
                     className={
                       "bg-transparent shadow-none relative text-xs text-indigo-600 px-1 h-7 hover:scale-110 hover:bg-transparent"
                     }
@@ -304,6 +300,7 @@ function InterviewHome({ params, searchParams }: Props) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    aria-label={t("Preview")}
                     className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -368,7 +365,9 @@ function InterviewHome({ params, searchParams }: Props) {
                 </>
               ) : (
                 <>
-                  <span className="ms-3 my-auto text-sm">{t("Active")}</span>
+                  <span className="ms-3 my-auto text-sm">
+                    {t(isActive ? "Active" : "Inactive")}
+                  </span>
                   <Switch
                     checked={isActive}
                     className={`ms-3 my-auto ${isActive ? "bg-indigo-600" : "bg-[#E6E7EB]"}`}
@@ -546,9 +545,12 @@ function InterviewHome({ params, searchParams }: Props) {
         <SharePopup
           open={isSharePopupOpen}
           shareContent={
-            interview?.readable_slug
-              ? `${base_url}/call/${interview?.readable_slug}`
-              : (interview?.url as string)
+            interview
+              ? getInterviewUrl(
+                  interview.readable_slug || interview.id,
+                  base_url || interview.url || window.location.origin,
+                )
+              : ""
           }
           onClose={closeSharePopup}
         />

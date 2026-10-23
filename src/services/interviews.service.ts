@@ -57,9 +57,7 @@ const updateInterview = async (payload: any, id: string) => {
     .update({ ...normalizedPayload })
     .eq("id", id);
   if (error) {
-    console.log(error);
-
-    return [];
+    throw error;
   }
 
   return data;
@@ -95,9 +93,7 @@ const createInterview = async (payload: any) => {
   const normalizedPayload = normalizeInterviewPayload(payload);
   const { error, data } = await supabase.from("interview").insert({ ...normalizedPayload });
   if (error) {
-    console.log(error);
-
-    return [];
+    throw error;
   }
 
   return data;

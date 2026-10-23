@@ -11,6 +11,7 @@ import axios from "axios";
 import { Plus } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
 
 interface Props {
@@ -77,15 +78,17 @@ function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
         logo_url: organization?.imageUrl || "",
       };
 
-      const response = await axios.post("/api/create-interview", {
+      await axios.post("/api/create-interview", {
         organizationName: organization?.name,
         interviewData: sanitizedInterviewData,
       });
-      setIsClicked(false);
       fetchInterviews();
       setOpen(false);
     } catch (error) {
       console.error("Error creating interview:", error);
+      toast.error(t("Could not create the interview. Please try again."));
+    } finally {
+      setIsClicked(false);
     }
   };
 

@@ -13,7 +13,7 @@ enum SatisfactionLevel {
 }
 
 interface FeedbackFormProps {
-  onSubmit: (data: Omit<FeedbackData, "interview_id">) => void;
+  onSubmit: (data: Omit<FeedbackData, "interview_id">) => Promise<void>;
   email: string;
 }
 
@@ -21,14 +21,21 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
   const { t } = useLanguage();
   const [satisfaction, setSatisfaction] = useState<SatisfactionLevel>(SatisfactionLevel.Moderate);
   const [feedback, setFeedback] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
-    if (satisfaction !== null || feedback.trim() !== "") {
-      onSubmit({
+  const handleSubmit = async () => {
+    if (isSubmitting) {
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
         satisfaction: Object.values(SatisfactionLevel).indexOf(satisfaction),
         feedback,
         email,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -54,7 +61,8 @@ export function FeedbackForm({ onSubmit, email }: FeedbackFormProps) {
         onChange={(e) => setFeedback(e.target.value)}
       />
       <Button
-        disabled={satisfaction === null && feedback.trim() === ""}
+        disabled={isSubmitting}
+        aria-busy={isSubmitting}
         className="w-full bg-indigo-600 text-white"
         onClick={handleSubmit}
       >

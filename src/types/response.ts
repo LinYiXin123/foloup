@@ -103,6 +103,7 @@ export interface CallData {
   };
   disconnection_reason: string;
   call_analysis: {
+    call_successful?: boolean;
     call_summary: string;
     user_sentiment: string;
     agent_sentiment: string;

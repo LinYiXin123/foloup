@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { getInterviewUrl } from "@/lib/interview-url";
 import { logger } from "@/lib/logger";
 import { InterviewService } from "@/services/interviews.service";
 import { nanoid } from "nanoid";
@@ -14,7 +15,7 @@ export async function POST(req: Request) {
 
   try {
     const url_id = nanoid();
-    const url = `${base_url}/call/${url_id}`;
+    const url = getInterviewUrl(url_id, base_url || new URL(req.url).origin);
     const body = await req.json();
 
     logger.info("create-interview request received");
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
       readableSlug = `${orgNameSlug}-${interviewNameSlug}`;
     }
 
-    const newInterview = await InterviewService.createInterview({
+    await InterviewService.createInterview({
       ...payload,
       // Ownership comes from the session, never from the request body.
       user_id: user.userId,

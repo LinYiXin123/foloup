@@ -134,6 +134,7 @@ export const zhCNMessages: Record<string, string> = {
     "面试尚未结束或转写仍在生成，请稍后重试。",
   "Could not load this interview report. Please try again.": "无法加载这份面试报告，请重试。",
   "Could not generate interview questions. Please try again.": "生成面试问题失败，请重试。",
+  "Could not create the interview. Please try again.": "创建面试失败，请重试。",
   "The generated interview contains an empty question.": "生成的问题中有空白内容，请重新生成。",
   "The generated interview is incomplete.": "生成的面试内容不完整，请重新生成。",
   "Could not prepare the interview. Please try again.": "面试准备失败，请重试。",

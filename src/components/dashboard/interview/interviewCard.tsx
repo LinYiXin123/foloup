@@ -6,6 +6,7 @@ import MiniLoader from "@/components/loaders/mini-loader/miniLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/language.context";
+import { getInterviewUrl } from "@/lib/interview-url";
 import axios from "axios";
 import { ArrowUpRight, Copy } from "lucide-react";
 import { CopyCheck } from "lucide-react";
@@ -78,7 +79,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
 
   const copyToClipboard = () => {
     navigator.clipboard
-      .writeText(readableSlug ? `${base_url}/call/${readableSlug}` : (url as string))
+      .writeText(getInterviewUrl(readableSlug || id, base_url || url || window.location.origin))
       .then(
         () => {
           setCopied(true);
@@ -99,7 +100,10 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   const handleJumpToInterview = (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
-    const interviewUrl = readableSlug ? `/call/${readableSlug}` : `/call/${url}`;
+    const interviewUrl = getInterviewUrl(
+      readableSlug || id,
+      base_url || url || window.location.origin,
+    );
     window.open(interviewUrl, "_blank");
   };
 
@@ -140,6 +144,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
           </div>
           <div className="absolute top-2 right-2 flex gap-1">
             <Button
+              aria-label={t("Preview")}
               className="text-xs text-indigo-600 px-1 h-6"
               variant={"secondary"}
               onClick={handleJumpToInterview}
@@ -147,6 +152,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
               <ArrowUpRight size={16} />
             </Button>
             <Button
+              aria-label={t("Copy URL")}
               className={`text-xs text-indigo-600 px-1 h-6  ${
                 copied ? "bg-indigo-300 text-white" : ""
               }`}
