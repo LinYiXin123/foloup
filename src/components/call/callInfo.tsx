@@ -223,7 +223,7 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
                       }}
                     >
                       <SelectTrigger className="w-[180px]  bg-slate-50 rounded-2xl">
-                        <SelectValue placeholder={t("Not Selected")} />
+                        <SelectValue placeholder={t("No Status")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value={CandidateStatus.NO_STATUS}>
@@ -402,14 +402,19 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
                 <div className="">
                   <div className="font-medium  ">
                     <span className="font-normal">{t("Call Summary:")} </span>
-                    {call?.call_analysis?.call_summary === undefined ? (
+                    {analytics?.callSummary === undefined &&
+                    call?.call_analysis?.call_summary === undefined ? (
                       <Skeleton className="w-[200px] h-[20px]" />
                     ) : (
-                      call?.call_analysis?.call_summary
+                      (analytics?.callSummary ?? call?.call_analysis?.call_summary)
                     )}
                   </div>
                 </div>
-                <p className="font-medium ">{call?.call_analysis?.call_completion_rating_reason}</p>
+                {!analytics?.callSummary && (
+                  <p className="font-medium ">
+                    {call?.call_analysis?.call_completion_rating_reason}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -215,3 +215,25 @@ test("pending query is interview-scoped and includes null flags; ended list does
     ["eq", "is_ended", true],
   ]);
 });
+
+for (const failure of ["query", "network"]) {
+  test(`${failure} failure does not appear as a successful empty response list`, async () => {
+    const builder = {
+      select: () => builder,
+      eq: () => builder,
+      order: async () => {
+        if (failure === "network") {
+          throw new Error("network unavailable");
+        }
+        return { data: null, error: { message: "database unavailable" } };
+      },
+    };
+    const { ResponseService } = loadModule("src/services/responses.service.ts", {
+      "@/lib/supabase": { createServiceClient: () => ({ from: () => builder }) },
+    });
+    await assert.rejects(
+      ResponseService.getAllResponses("owned-interview"),
+      failure === "network" ? /network unavailable/ : /Could not load interview responses/,
+    );
+  });
+}

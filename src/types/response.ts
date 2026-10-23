@@ -21,6 +21,7 @@ export interface Analytics {
   communication: { score: number; feedback: string };
   generalIntelligence: string;
   softSkillSummary: string;
+  callSummary?: string;
   questionSummaries: Array<{
     question: string;
     summary: string;

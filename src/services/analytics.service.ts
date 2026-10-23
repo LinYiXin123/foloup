@@ -28,7 +28,11 @@ export const generateInterviewAnalytics = async (payload: {
 
     const openai = createOpenAIClient();
 
-    const prompt = getInterviewAnalyticsPrompt(interviewTranscript, mainInterviewQuestions);
+    const prompt = getInterviewAnalyticsPrompt(
+      interviewTranscript,
+      mainInterviewQuestions,
+      interview?.description || "",
+    );
 
     const baseCompletion = await openai.chat.completions.create({
       model: getOpenAIModel(),

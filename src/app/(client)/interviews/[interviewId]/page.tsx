@@ -30,7 +30,7 @@ import { CandidateStatus } from "@/lib/enum";
 import { formatTimestampToDateHHMM } from "@/lib/utils";
 import type { Interview } from "@/types/interview";
 import type { Response } from "@/types/response";
-import { useOrganization } from "@clerk/nextjs";
+import { useAuth, useOrganization } from "@clerk/nextjs";
 import { Eye, Filter, Palette, Pencil, Share2, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, use } from "react";
@@ -61,10 +61,13 @@ function InterviewHome({ params, searchParams }: Props) {
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [isGeneratingInsights, setIsGeneratingInsights] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState("");
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [themeColor, setThemeColor] = useState<string>("#4F46E5");
   const [iconColor, seticonColor] = useState<string>("#4F46E5");
-  const { organization } = useOrganization();
+  const { organization, isLoaded: organizationLoaded } = useOrganization();
+  const { isLoaded: authLoaded, userId, orgId } = useAuth();
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
 
   const seeInterviewPreviewPage = () => {
@@ -84,24 +87,33 @@ function InterviewHome({ params, searchParams }: Props) {
     }
   };
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: retry attempts and organization changes intentionally reload both queries.
   useEffect(() => {
-    if (isGeneratingInsights) {
+    if (!authLoaded || !organizationLoaded || !userId || isGeneratingInsights) {
       return;
     }
     let cancelled = false;
     const fetchInterview = async () => {
       setLoading(true);
+      setLoadError("");
       try {
-        const response = await getMyInterview(resolvedParams.interviewId);
+        const [response, interviewResponses] = await Promise.all([
+          getMyInterview(resolvedParams.interviewId),
+          getMyInterviewResponses(resolvedParams.interviewId),
+        ]);
         if (cancelled) {
           return;
         }
         setInterview(response);
+        setResponses(interviewResponses);
         setIsActive(response.is_active);
         setThemeColor(response.theme_color ?? "#4F46E5");
         seticonColor(response.theme_color ?? "#4F46E5");
       } catch (error) {
         console.error(error);
+        if (!cancelled) {
+          setLoadError("Could not load this interview and its responses. Please try again.");
+        }
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -112,7 +124,15 @@ function InterviewHome({ params, searchParams }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [resolvedParams.interviewId, isGeneratingInsights]);
+  }, [
+    resolvedParams.interviewId,
+    isGeneratingInsights,
+    loadAttempt,
+    authLoaded,
+    organizationLoaded,
+    userId,
+    orgId,
+  ]);
 
   useEffect(() => {
     const fetchOrganizationData = async () => {
@@ -130,22 +150,6 @@ function InterviewHome({ params, searchParams }: Props) {
 
     fetchOrganizationData();
   }, [organization]);
-  useEffect(() => {
-    const fetchResponses = async () => {
-      try {
-        const response = await getMyInterviewResponses(resolvedParams.interviewId);
-        setResponses(response);
-        setLoading(true);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchResponses();
-  }, [resolvedParams.interviewId]);
-
   const handleDeleteResponse = (deletedCallId: string) => {
     if (responses) {
       setResponses(responses.filter((response) => response.call_id !== deletedCallId));
@@ -253,6 +257,13 @@ function InterviewHome({ params, searchParams }: Props) {
       {loading ? (
         <div className="flex flex-col items-center justify-center h-[80%] w-full">
           <LoaderWithText />
+        </div>
+      ) : loadError ? (
+        <div className="flex flex-col items-center justify-center gap-4 h-[80%] p-6">
+          <p role="alert" className="text-center text-sm text-red-700">
+            {t(loadError)}
+          </p>
+          <Button onClick={() => setLoadAttempt((attempt) => attempt + 1)}>{t("Retry")}</Button>
         </div>
       ) : (
         <>

@@ -1,5 +1,7 @@
 export const zhCNMessages: Record<string, string> = {
   Notifications: "通知",
+  "Could not load this interview and its responses. Please try again.":
+    "面试信息或记录加载失败，请重试。",
   "Previous slide": "上一项",
   "Next slide": "下一项",
   Logo: "品牌标志",

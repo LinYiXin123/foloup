@@ -32,20 +32,17 @@ const saveResponse = async (payload: any, call_id: string) => {
 };
 
 const getAllResponses = async (interviewId: string) => {
-  try {
-    const { data, error } = await supabase
-      .from("response")
-      .select("*")
-      .eq("interview_id", interviewId)
-      .eq("is_ended", true)
-      .order("created_at", { ascending: false });
-
-    return data || [];
-  } catch (error) {
-    console.log(error);
-
-    return [];
+  const { data, error } = await supabase
+    .from("response")
+    .select("*")
+    .eq("interview_id", interviewId)
+    .eq("is_ended", true)
+    .order("created_at", { ascending: false });
+  if (error) {
+    throw new Error("Could not load interview responses");
   }
+
+  return data || [];
 };
 
 const getPendingCalls = async (interviewId: string) => {
