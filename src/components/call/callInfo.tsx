@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CandidateStatus } from "@/lib/enum";
-import type { Analytics, CallData } from "@/types/response";
+import type { Analytics, CallData, Response } from "@/types/response";
 import { CircularProgress } from "@nextui-org/react";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import axios from "axios";
@@ -43,9 +43,17 @@ type CallProps = {
   call_id: string;
   onDeleteResponse: (deletedCallId: string) => void;
   onCandidateStatusChange: (callId: string, newStatus: string) => void;
+  onReportLoaded: (
+    report: Pick<Response, "call_id" | "analytics" | "details" | "duration">,
+  ) => void;
 };
 
-function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallProps) {
+function CallInfo({
+  call_id,
+  onDeleteResponse,
+  onCandidateStatusChange,
+  onReportLoaded,
+}: CallProps) {
   const { t } = useLanguage();
   const [call, setCall] = useState<CallData>();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -106,6 +114,15 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
             .replace(/User:/g, `**${response.name || t("Candidate")}:**`)
             .replace(/(?:\r\n|\r|\n)/g, "\n\n"),
         );
+        const duration = Math.round(
+          (callResponse.end_timestamp - callResponse.start_timestamp) / 1000,
+        );
+        onReportLoaded({
+          call_id,
+          analytics: report.data.analytics,
+          details: callResponse,
+          duration: Number.isFinite(duration) && duration >= 0 ? duration : response.duration,
+        });
       } catch (error) {
         if (active) {
           controller.abort();
@@ -131,7 +148,7 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
       active = false;
       controller.abort();
     };
-  }, [call_id, retryAttempt, t]);
+  }, [call_id, retryAttempt, t, onReportLoaded]);
 
   const onDeleteResponseClick = async () => {
     try {
@@ -195,7 +212,7 @@ function CallInfo({ call_id, onDeleteResponse, onCandidateStatusChange }: CallPr
                     <ArrowLeft className="mr-2" />
                     <p className="text-sm font-semibold">{t("Back to Summary")}</p>
                   </button>
-                  {tabSwitchCount && tabSwitchCount > 0 && (
+                  {(tabSwitchCount ?? 0) > 0 && (
                     <p className="text-sm font-semibold text-red-500 bg-red-200 rounded-sm px-2 py-1">
                       {t("Tab Switching Detected")}
                     </p>

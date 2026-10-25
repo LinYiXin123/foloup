@@ -128,8 +128,9 @@ function SummaryInfo({ responses, interview }: SummaryProps) {
       }
 
       totalDuration += response.duration;
-      if (Object.values(CandidateStatus).includes(response.candidate_status as CandidateStatus)) {
-        statusCounter[response.candidate_status as CandidateStatus]++;
+      const status = response.candidate_status || CandidateStatus.NO_STATUS;
+      if (Object.values(CandidateStatus).includes(status as CandidateStatus)) {
+        statusCounter[status as CandidateStatus]++;
       }
     }
 

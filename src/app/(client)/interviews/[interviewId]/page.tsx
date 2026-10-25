@@ -34,7 +34,7 @@ import type { Response } from "@/types/response";
 import { useAuth, useOrganization } from "@clerk/nextjs";
 import { Eye, Filter, Palette, Pencil, Share2, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect, use, useCallback } from "react";
 import { ChromePicker } from "react-color";
 import { toast } from "sonner";
 
@@ -216,6 +216,19 @@ function InterviewHome({ params, searchParams }: Props) {
     });
   };
 
+  const handleReportLoaded = useCallback(
+    (report: Pick<Response, "call_id" | "analytics" | "details" | "duration">) => {
+      setResponses((current) =>
+        current?.map((response) =>
+          response.call_id === report.call_id
+            ? { ...response, ...report, is_ended: true, is_analysed: true }
+            : response,
+        ),
+      );
+    },
+    [],
+  );
+
   const openSharePopup = () => {
     setIsSharePopupOpen(true);
   };
@@ -244,7 +257,9 @@ function InterviewHome({ params, searchParams }: Props) {
       return responses;
     }
 
-    return responses?.filter((response) => response?.candidate_status === filterStatus);
+    return responses.filter(
+      (response) => (response.candidate_status || CandidateStatus.NO_STATUS) === filterStatus,
+    );
   };
 
   return (
@@ -515,6 +530,7 @@ function InterviewHome({ params, searchParams }: Props) {
                     call_id={resolvedSearchParams.call}
                     onDeleteResponse={handleDeleteResponse}
                     onCandidateStatusChange={handleCandidateStatusChange}
+                    onReportLoaded={handleReportLoaded}
                   />
                 ) : resolvedSearchParams.edit ? (
                   <EditInterview interview={interview} />
