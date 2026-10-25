@@ -3,6 +3,7 @@
 import { getInterviewerImage } from "@/actions/candidate";
 import { getMyInterviewResponses } from "@/actions/dashboard";
 import DeleteInterviewDialog from "@/components/dashboard/interview/deleteInterviewDialog";
+import InterviewActionTooltip from "@/components/dashboard/interview/interviewActionTooltip";
 import MiniLoader from "@/components/loaders/mini-loader/miniLoader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
@@ -113,13 +114,13 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
 
   return (
     <Card className="relative p-0 mt-4 inline-block cursor-pointer h-60 w-56 ml-1 mr-3 rounded-xl shrink-0 overflow-hidden shadow-md">
-      <CardContent className={`p-0 ${isFetching ? "opacity-60" : ""}`}>
+      <CardContent className={`h-full p-0 ${isFetching ? "opacity-60" : ""}`}>
         <Link
           href={`/interviews/${id}`}
-          className="block"
+          className="flex h-full flex-col"
           style={{ pointerEvents: isFetching ? "none" : "auto" }}
         >
-          <div className="w-full h-32 overflow-hidden bg-indigo-600 flex items-center text-center">
+          <div className="w-full h-40 shrink-0 overflow-hidden bg-indigo-600 flex items-center text-center">
             <CardTitle className="w-full mt-6 mx-2 text-white text-base line-clamp-3">
               {name}
               {isFetching && (
@@ -129,7 +130,7 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
               )}
             </CardTitle>
           </div>
-          <div className="flex h-16 flex-row items-center mx-4 ">
+          <div className="flex flex-1 flex-row items-center mx-4 ">
             <div className="w-full overflow-hidden">
               {img && (
                 <Image
@@ -147,41 +148,42 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
             </div>
           </div>
         </Link>
-        <div className="flex h-10 items-center justify-between border-t px-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link
-              href={`/interviews/${id}?edit=true`}
-              aria-label={t("Edit {name}", { name: name || t("Interview") })}
+        <div className="absolute top-2 right-2 flex items-center gap-1">
+          <InterviewActionTooltip label={t("Preview candidate interview page")}>
+            <Button
+              aria-label={t("Preview")}
+              className="h-6 w-6 p-0 text-indigo-600"
+              variant={"secondary"}
+              onClick={handleJumpToInterview}
             >
-              <Pencil size={14} className="mr-1" />
-              {t("Edit")}
-            </Link>
-          </Button>
-          <DeleteInterviewDialog id={id} name={name} onDeleted={fetchInterviews} />
-        </div>
-        <div className="absolute top-2 right-2 flex gap-1">
-          <Button
-            aria-label={t("Preview")}
-            className="text-xs text-indigo-600 px-1 h-6"
-            variant={"secondary"}
-            onClick={handleJumpToInterview}
-          >
-            <ArrowUpRight size={16} />
-          </Button>
-          <Button
-            aria-label={t("Copy URL")}
-            className={`text-xs text-indigo-600 px-1 h-6  ${
-              copied ? "bg-indigo-300 text-white" : ""
-            }`}
-            variant={"secondary"}
-            onClick={(event) => {
-              event.stopPropagation();
-              event.preventDefault();
-              copyToClipboard();
-            }}
-          >
-            {copied ? <CopyCheck size={16} /> : <Copy size={16} />}
-          </Button>
+              <ArrowUpRight size={16} />
+            </Button>
+          </InterviewActionTooltip>
+          <InterviewActionTooltip label={t("Copy candidate interview link")}>
+            <Button
+              aria-label={t("Copy URL")}
+              className={`h-6 w-6 p-0 text-indigo-600 ${copied ? "bg-indigo-300 text-white" : ""}`}
+              variant={"secondary"}
+              onClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                copyToClipboard();
+              }}
+            >
+              {copied ? <CopyCheck size={16} /> : <Copy size={16} />}
+            </Button>
+          </InterviewActionTooltip>
+          <InterviewActionTooltip label={t("Edit Interview")}>
+            <Button asChild variant="secondary" className="h-6 w-6 p-0 text-indigo-600">
+              <Link
+                href={`/interviews/${id}?edit=true`}
+                aria-label={t("Edit {name}", { name: name || t("Interview") })}
+              >
+                <Pencil size={14} />
+              </Link>
+            </Button>
+          </InterviewActionTooltip>
+          <DeleteInterviewDialog id={id} name={name} onDeleted={fetchInterviews} iconOnly />
         </div>
       </CardContent>
     </Card>

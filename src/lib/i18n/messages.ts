@@ -1,4 +1,7 @@
 export const zhCNMessages: Record<string, string> = {
+  "Preview candidate interview page": "预览候选人面试页面",
+  "Copy candidate interview link": "复制候选人面试链接",
+  "Delete interview (move to recycle bin)": "删除面试（移至回收站）",
   "Edit {name}": "编辑{name}",
   Interview: "面试",
   "Edit Interview": "编辑面试",

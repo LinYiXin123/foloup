@@ -1,6 +1,7 @@
 "use client";
 
 import { deleteMyInterview } from "@/actions/dashboard";
+import InterviewActionTooltip from "@/components/dashboard/interview/interviewActionTooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,15 +23,34 @@ export default function DeleteInterviewDialog({
   id,
   name,
   onDeleted,
+  iconOnly = false,
 }: {
   id: string;
   name: string | null;
   onDeleted: () => void;
+  iconOnly?: boolean;
 }) {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
+  const trigger = (
+    <AlertDialogTrigger asChild>
+      <Button
+        variant={iconOnly ? "secondary" : "ghost"}
+        size="sm"
+        className={
+          iconOnly
+            ? "h-6 w-6 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+            : "text-red-600 hover:text-red-700"
+        }
+        aria-label={t("Delete {name}", { name: name || t("Interview") })}
+      >
+        <Trash2 size={14} className={iconOnly ? undefined : "mr-1"} />
+        {!iconOnly && t("Delete")}
+      </Button>
+    </AlertDialogTrigger>
+  );
   const remove = async () => {
     if (pendingRef.current) {
       return;
@@ -58,17 +78,13 @@ export default function DeleteInterviewDialog({
         }
       }}
     >
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-red-600 hover:text-red-700"
-          aria-label={t("Delete {name}", { name: name || t("Interview") })}
-        >
-          <Trash2 size={14} className="mr-1" />
-          {t("Delete")}
-        </Button>
-      </AlertDialogTrigger>
+      {iconOnly ? (
+        <InterviewActionTooltip label={t("Delete interview (move to recycle bin)")}>
+          {trigger}
+        </InterviewActionTooltip>
+      ) : (
+        trigger
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("Move this interview to the recycle bin?")}</AlertDialogTitle>
