@@ -1,4 +1,14 @@
 export const zhCNMessages: Record<string, string> = {
+  "Sign in with Feishu": "使用飞书登录",
+  "Continue with Feishu": "飞书授权登录",
+  "Sign in to manage interviews and view reports.": "登录后即可管理面试、查看回答与分析报告。",
+  "Login expired. Please start again.": "登录请求已失效，请重新发起登录。",
+  "Feishu authorization was cancelled. You can try again.": "已取消飞书授权，你可以重新登录。",
+  "Could not complete Feishu login. Please retry or check the app configuration.":
+    "飞书登录未完成，请重试；若持续失败，请检查应用凭证和回调配置。",
+  "Back to dashboard": "返回后台",
+  "Sign out": "退出登录",
+  Feishu: "飞书",
   Notifications: "通知",
   "Could not load this interview and its responses. Please try again.":
     "面试信息或记录加载失败，请重试。",

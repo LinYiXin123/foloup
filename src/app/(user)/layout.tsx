@@ -4,8 +4,9 @@ import "../globals.css";
 import LanguageSwitcher from "@/components/languageSwitcher";
 import Providers from "@/components/providers";
 import { LanguageProvider, LocalizedToaster as Toaster } from "@/contexts/language.context";
-import { zhCN } from "@clerk/localizations";
-import { ClerkProvider } from "@clerk/nextjs";
+import { AppSessionProvider } from "@/contexts/session.context";
+import { getFeishuSession } from "@/lib/feishu-auth";
+import { usesFeishu } from "@/lib/feishu-session";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,19 +30,21 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const feishu = usesFeishu();
+  const session = feishu ? await getFeishuSession() : null;
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/browser-user-icon.ico" />
       </head>
       <body className={inter.className}>
-        <ClerkProvider dynamic localization={zhCN}>
-          <LanguageProvider>
+        <LanguageProvider>
+          <AppSessionProvider provider={feishu ? "feishu" : "clerk"} session={session}>
             <Providers>
               <div className="fixed right-4 top-3 z-50">
                 <LanguageSwitcher />
@@ -60,8 +63,8 @@ export default function RootLayout({
                 }}
               />
             </Providers>
-          </LanguageProvider>
-        </ClerkProvider>
+          </AppSessionProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

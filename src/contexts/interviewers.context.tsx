@@ -1,8 +1,8 @@
 "use client";
 
 import { createCustomInterviewer, getInterviewers } from "@/actions/dashboard";
+import { useAppSession } from "@/contexts/session.context";
 import type { Interviewer } from "@/types/interviewer";
-import { useUser } from "@clerk/nextjs";
 import React, { useState, useContext, type ReactNode, useEffect } from "react";
 
 interface InterviewerContextProps {
@@ -27,7 +27,7 @@ interface InterviewerProviderProps {
 
 export function InterviewerProvider({ children }: InterviewerProviderProps) {
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
-  const { user } = useUser();
+  const { user } = useAppSession();
   const [interviewersLoading, setInterviewersLoading] = useState(true);
 
   const fetchInterviewers = async () => {

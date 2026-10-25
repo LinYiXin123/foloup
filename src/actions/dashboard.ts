@@ -1,10 +1,12 @@
 "use server";
 
 // Data access for the signed-in dashboard. Server actions are public HTTP endpoints,
-// so every function checks the Clerk session and takes user and org ids from it,
+// so every function checks the server session and takes user and org ids from it,
 // never from its arguments.
 
 import { canAccessInterview, getSignedInUser } from "@/lib/auth";
+import { getFeishuSession } from "@/lib/feishu-auth";
+import { usesFeishu } from "@/lib/feishu-session";
 import { reconcileInterviewCalls } from "@/services/call-reconciliation.service";
 import { ClientService } from "@/services/clients.service";
 import { InterviewerService } from "@/services/interviewers.service";
@@ -38,6 +40,10 @@ async function getOwnedResponse(callId: string) {
 
 export async function syncCurrentUser() {
   const user = await getSignedInUser();
+  if (usesFeishu()) {
+    const session = await getFeishuSession();
+    return ClientService.getClientById(user.userId, session?.email ?? null, user.orgId || null);
+  }
   const clerkUser = await currentUser();
 
   return ClientService.getClientById(
@@ -51,6 +57,9 @@ export async function getMyOrganization() {
   const user = await getSignedInUser();
   if (!user.orgId) {
     return null;
+  }
+  if (usesFeishu()) {
+    return ClientService.getOrganizationById(user.orgId);
   }
   const clerk = await clerkClient();
   const organization = await clerk.organizations.getOrganization({ organizationId: user.orgId });

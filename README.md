@@ -43,6 +43,8 @@ cp .env.example .env
 
 ## Clerk Setup ([Clerk](https://clerk.com/))
 
+本项目也支持直接使用飞书登录。配置 App ID、App Secret 和登录回调后，将 `AUTH_PROVIDER` 设为 `feishu`；具体步骤及旧工作区绑定方式见[飞书登录配置](docs/feishu-login.md)。飞书模式无需填写 Clerk 凭证。
+
 We use Clerk for authentication. Set up Clerk environment variables in the `.env` file. Free plan should be more than enough.
 
 1. Navigate to [Clerk](https://dashboard.clerk.com/) and create an application following the [setup guide](https://clerk.com/docs/quickstarts/setup-clerk).

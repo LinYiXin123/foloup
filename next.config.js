@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  logging: {
+    // OAuth callback URLs contain a short-lived authorization code.
+    incomingRequests: { ignore: [/\/api\/auth\/feishu\/callback(?:\?|$)/] },
+  },
   experimental: {
     serverActions: { bodySizeLimit: "11mb" },
   },

@@ -1,95 +1,30 @@
-"use client";
-
 import "../globals.css";
-import LanguageSwitcher from "@/components/languageSwitcher";
-import Navbar from "@/components/navbar";
-import Providers from "@/components/providers";
-import SideMenu from "@/components/sideMenu";
-import {
-  LanguageProvider,
-  LocalizedClerkProvider,
-  LocalizedToaster as Toaster,
-} from "@/contexts/language.context";
+import AppShell from "@/components/appShell";
+import { LanguageProvider } from "@/contexts/language.context";
+import { AppSessionProvider } from "@/contexts/session.context";
+import { getFeishuSession } from "@/lib/feishu-auth";
+import { usesFeishu } from "@/lib/feishu-session";
 import { cn } from "@/lib/utils";
 import { Inter } from "next/font/google";
-import { usePathname } from "next/navigation";
 
 const inter = Inter({ subsets: ["latin"] });
+const title = "FoloUp";
 
-const metadata = {
-  title: "FoloUp",
-  description: "AI 智能面试",
-  openGraph: {
-    title: "FoloUp",
-    description: "AI-powered Interviews",
-    siteName: "FoloUp",
-    images: [
-      {
-        url: "/foloup.png",
-        width: 800,
-        height: 600,
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-};
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const isAuthRoute = pathname.includes("/sign-in") || pathname.includes("/sign-up");
-
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const feishu = usesFeishu();
+  const session = feishu ? await getFeishuSession() : null;
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <title>{metadata.title}</title>
-        <meta name="description" content={metadata.description} />
+        <title>{title}</title>
+        <meta name="description" content="AI 智能面试" />
         <link rel="icon" href="/browser-client-icon.ico" />
       </head>
       <body className={cn(inter.className, "antialiased overflow-hidden min-h-screen")}>
         <LanguageProvider>
-          <LocalizedClerkProvider
-            dynamic
-            signInFallbackRedirectUrl={"/dashboard"}
-            afterSignOutUrl={"/sign-in"}
-          >
-            <Providers>
-              {isAuthRoute ? (
-                <>
-                  <div className="fixed right-5 top-4 z-50">
-                    <LanguageSwitcher />
-                  </div>
-                  {children}
-                </>
-              ) : (
-                <>
-                  <Navbar />
-                  <div className="flex flex-row h-screen">
-                    <SideMenu />
-                    <div className="ml-[200px] pt-[64px] h-full overflow-y-auto flex-grow">
-                      {children}
-                    </div>
-                  </div>
-                </>
-              )}
-              <Toaster
-                toastOptions={{
-                  classNames: {
-                    toast: "bg-white",
-                    title: "text-black",
-                    description: "text-red-400",
-                    actionButton: "bg-indigo-400",
-                    cancelButton: "bg-orange-400",
-                    closeButton: "bg-white-400",
-                  },
-                }}
-              />
-            </Providers>
-          </LocalizedClerkProvider>
+          <AppSessionProvider provider={feishu ? "feishu" : "clerk"} session={session}>
+            <AppShell>{children}</AppShell>
+          </AppSessionProvider>
         </LanguageProvider>
       </body>
     </html>

@@ -26,12 +26,12 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useAppSession } from "@/contexts/session.context";
 import { CandidateStatus } from "@/lib/enum";
 import { getInterviewUrl } from "@/lib/interview-url";
 import { formatTimestampToDateHHMM } from "@/lib/utils";
 import type { Interview } from "@/types/interview";
 import type { Response } from "@/types/response";
-import { useAuth, useOrganization } from "@clerk/nextjs";
 import { Eye, Filter, Palette, Pencil, Share2, UserIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, use, useCallback } from "react";
@@ -67,8 +67,7 @@ function InterviewHome({ params, searchParams }: Props) {
   const [showColorPicker, setShowColorPicker] = useState<boolean>(false);
   const [themeColor, setThemeColor] = useState<string>("#4F46E5");
   const [iconColor, seticonColor] = useState<string>("#4F46E5");
-  const { organization, isLoaded: organizationLoaded } = useOrganization();
-  const { isLoaded: authLoaded, userId, orgId } = useAuth();
+  const { organization, isLoaded: authLoaded, userId, orgId } = useAppSession();
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
 
   const seeInterviewPreviewPage = () => {
@@ -85,7 +84,7 @@ function InterviewHome({ params, searchParams }: Props) {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: retry attempts and organization changes intentionally reload both queries.
   useEffect(() => {
-    if (!authLoaded || !organizationLoaded || !userId || isGeneratingInsights) {
+    if (!authLoaded || !userId || isGeneratingInsights) {
       return;
     }
     let cancelled = false;
@@ -120,15 +119,7 @@ function InterviewHome({ params, searchParams }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [
-    resolvedParams.interviewId,
-    isGeneratingInsights,
-    loadAttempt,
-    authLoaded,
-    organizationLoaded,
-    userId,
-    orgId,
-  ]);
+  }, [resolvedParams.interviewId, isGeneratingInsights, loadAttempt, authLoaded, userId, orgId]);
 
   useEffect(() => {
     const fetchOrganizationData = async () => {

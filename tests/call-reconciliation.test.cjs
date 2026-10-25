@@ -133,6 +133,8 @@ test("a failed pending query leaves the existing dashboard usable and performs n
 function setupDashboard(authorized) {
   const events = [];
   const actions = loadModule("src/actions/dashboard.ts", {
+    "@/lib/feishu-auth": {},
+    "@/lib/feishu-session": { usesFeishu: () => false },
     "@/lib/auth": {
       getSignedInUser: async () => {
         events.push("auth");

@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useInterviews } from "@/contexts/interviews.context";
 import { useLanguage } from "@/contexts/language.context";
+import { useAppSession } from "@/contexts/session.context";
 import type { InterviewBase, Question } from "@/types/interview";
-import { useClerk, useOrganization } from "@clerk/nextjs";
 import axios from "axios";
 import { Plus } from "lucide-react";
 import { ChevronLeft } from "lucide-react";
@@ -22,8 +22,7 @@ interface Props {
 
 function QuestionsPopup({ interviewData, setProceed, setOpen }: Props) {
   const { t } = useLanguage();
-  const { user } = useClerk();
-  const { organization } = useOrganization();
+  const { user, organization } = useAppSession();
   const [isClicked, setIsClicked] = useState(false);
 
   const [questions, setQuestions] = useState<Question[]>(interviewData.questions);

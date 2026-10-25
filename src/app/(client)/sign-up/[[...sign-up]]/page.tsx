@@ -1,28 +1,10 @@
-"use client";
+import AuthEntry from "@/components/authEntry";
+import { usesFeishu } from "@/lib/feishu-session";
+import { redirect } from "next/navigation";
 
-import { useLanguage } from "@/contexts/language.context";
-import { SignUp } from "@clerk/nextjs";
-
-function SignUpPage() {
-  const { t } = useLanguage();
-  return (
-    <div className="flex items-center justify-center h-screen w-full bg-white absolute top-0 left-0 z-50">
-      <div className="hidden md:block align-middle my-auto">
-        <SignUp forceRedirectUrl="/dashboard" />
-      </div>
-      <div className="block md:hidden px-3 h-[60%] my-auto">
-        <h1 className="text-2xl font-bold text-center text-gray-800">
-          {t("Welcome to Folo")}
-          <span className="text-indigo-600">Up</span>
-        </h1>
-        <h1 className="text-md my-3 text-center text-gray-800">
-          {t("Mobile version is currently under construction. 🚧")}
-        </h1>
-        <p className="text-center text-gray-600 mt-3">
-          {t("Please sign in using a PC for the best experience. Sorry for the inconvenience.")}
-        </p>
-      </div>
-    </div>
-  );
+export default function SignUpPage() {
+  if (usesFeishu()) {
+    redirect("/sign-in");
+  }
+  return <AuthEntry signUp />;
 }
-export default SignUpPage;

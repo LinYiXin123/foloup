@@ -12,7 +12,7 @@ import CreateInterviewCard from "@/components/dashboard/interview/createIntervie
 import InterviewCard from "@/components/dashboard/interview/interviewCard";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useInterviews } from "@/contexts/interviews.context";
-import { useOrganization } from "@clerk/nextjs";
+import { useAppSession } from "@/contexts/session.context";
 import { Gem, Plus } from "lucide-react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
@@ -20,7 +20,7 @@ import React, { useState, useEffect } from "react";
 function Interviews() {
   const { t } = useLanguage();
   const { interviews, interviewsLoading } = useInterviews();
-  const { organization } = useOrganization();
+  const { organization } = useAppSession();
   const [loading, setLoading] = useState<boolean>(false);
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [allowedResponsesCount, setAllowedResponsesCount] = useState<number>(10);

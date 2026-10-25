@@ -131,9 +131,8 @@ test("newly loaded report updates list scores and summary duration without a rel
   const page = harness("src/app/(client)/interviews/[interviewId]/page.tsx", {
     "@/components/call/callInfo": { __esModule: true, default: "CallInfo" },
     "@/components/dashboard/interview/summaryInfo": { __esModule: true, default: "SummaryInfo" },
-    "@clerk/nextjs": {
-      useAuth: () => ({ isLoaded: true, userId: "owner-test", orgId: "org-test" }),
-      useOrganization: () => ({ isLoaded: true }),
+    "@/contexts/session.context": {
+      useAppSession: () => ({ isLoaded: true, userId: "owner-test", orgId: "org-test" }),
     },
     "@/actions/dashboard": {
       getMyInterview: async () => ({ id: "interview-test" }),
