@@ -16,7 +16,14 @@ import type { Interview } from "@/types/interview";
 import { clerkClient, currentUser } from "@clerk/nextjs/server";
 
 // Columns that decide who owns an interview or where its link points; never editable.
-const PROTECTED_INTERVIEW_FIELDS = ["id", "user_id", "organization_id", "url", "readable_slug"];
+const PROTECTED_INTERVIEW_FIELDS = [
+  "id",
+  "user_id",
+  "organization_id",
+  "url",
+  "readable_slug",
+  "is_archived",
+];
 
 async function getOwnedInterview(interviewId: string) {
   const user = await getSignedInUser();
@@ -91,12 +98,20 @@ export async function getMyInterviews() {
   return InterviewService.getAllInterviews(user.userId, user.orgId);
 }
 
+export async function getMyDeletedInterviews() {
+  const user = await getSignedInUser();
+  return InterviewService.getAllInterviews(user.userId, user.orgId, true);
+}
+
 export async function getMyInterview(interviewId: string) {
   return getOwnedInterview(interviewId);
 }
 
 export async function updateMyInterview(interviewId: string, payload: Record<string, unknown>) {
   const interview = await getOwnedInterview(interviewId);
+  if (interview.is_archived) {
+    throw new Error("Restore this interview before editing it.");
+  }
   const changes = Object.fromEntries(
     Object.entries(payload).filter(([key]) => !PROTECTED_INTERVIEW_FIELDS.includes(key)),
   );
@@ -108,6 +123,11 @@ export async function deleteMyInterview(interviewId: string) {
   const interview = await getOwnedInterview(interviewId);
 
   return InterviewService.deleteInterview(interview.id);
+}
+
+export async function restoreMyInterview(interviewId: string) {
+  const interview = await getOwnedInterview(interviewId);
+  return InterviewService.restoreInterview(interview.id);
 }
 
 export async function getMyInterviewResponses(interviewId: string) {

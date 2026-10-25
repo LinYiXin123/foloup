@@ -14,25 +14,21 @@ const normalizeInterviewPayload = (payload: any) => {
   return payload;
 };
 
-const getAllInterviews = async (userId: string, organizationId: string) => {
-  try {
-    // Without an org, match on the user only: an empty org id would match every
-    // other org-less user's interviews.
-    const ownerFilter = organizationId
-      ? `organization_id.eq.${organizationId},user_id.eq.${userId}`
-      : `user_id.eq.${userId}`;
-    const { data: clientData, error: clientError } = await supabase
-      .from("interview")
-      .select("*")
-      .or(ownerFilter)
-      .order("created_at", { ascending: false });
-
-    return [...(clientData || [])];
-  } catch (error) {
-    console.log(error);
-
-    return [];
+const getAllInterviews = async (userId: string, organizationId: string, archived = false) => {
+  // Without an org, match on the user only: an empty org id would match every
+  // other org-less user's interviews.
+  const ownerFilter = organizationId
+    ? `organization_id.eq.${organizationId},user_id.eq.${userId}`
+    : `user_id.eq.${userId}`;
+  const query = supabase.from("interview").select("*").or(ownerFilter);
+  // A second .or() would replace the ownership filter. Keep the archive
+  // condition separate and include legacy NULL flags in the normal list.
+  const filtered = archived ? query.eq("is_archived", true) : query.not("is_archived", "is", true);
+  const { data, error } = await filtered.order("created_at", { ascending: false });
+  if (error) {
+    throw error;
   }
+  return data || [];
 };
 
 const getInterviewById = async (id: string) => {
@@ -64,13 +60,29 @@ const updateInterview = async (payload: any, id: string) => {
 };
 
 const deleteInterview = async (id: string) => {
-  const { error, data } = await supabase.from("interview").delete().eq("id", id);
+  const { error, data } = await supabase
+    .from("interview")
+    .update({ is_archived: true, is_active: false })
+    .eq("id", id)
+    .select("id")
+    .single();
   if (error) {
-    console.log(error);
-
-    return [];
+    throw error;
   }
 
+  return data;
+};
+
+const restoreInterview = async (id: string) => {
+  const { error, data } = await supabase
+    .from("interview")
+    .update({ is_archived: false, is_active: false })
+    .eq("id", id)
+    .select("id")
+    .single();
+  if (error) {
+    throw error;
+  }
   return data;
 };
 
@@ -120,6 +132,7 @@ export const InterviewService = {
   getInterviewById,
   updateInterview,
   deleteInterview,
+  restoreInterview,
   getAllRespondents,
   createInterview,
   deactivateInterviewsByOrgId,

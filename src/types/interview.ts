@@ -31,6 +31,7 @@ export interface InterviewDetails {
   quotes: Quote[];
   details: any;
   is_active: boolean;
+  is_archived?: boolean;
   theme_color: string;
   logo_url: string;
   respondents: string[];

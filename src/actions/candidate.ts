@@ -36,7 +36,7 @@ export async function getPublicInterview(interviewId: string): Promise<PublicInt
       interview = await InterviewService.getInterviewById(decodedId);
     }
   }
-  if (!interview?.id) {
+  if (!interview?.id || interview.is_archived) {
     return null;
   }
 

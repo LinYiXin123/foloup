@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   // This route is public (candidates have no account), so everything except the
   // candidate's own name and resume comes from the stored interview, not the request.
   const interview = await InterviewService.getInterviewById(String(body.interview_id ?? ""));
-  if (!interview || !interview.is_active) {
+  if (!interview || !interview.is_active || interview.is_archived) {
     return NextResponse.json({ error: "Interview not found" }, { status: 404 });
   }
 

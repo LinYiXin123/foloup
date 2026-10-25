@@ -87,6 +87,12 @@ We use OpenAI to generate questions for interviews and analyze responses. This w
 
 ## Getting Started locally
 
+### 编辑、删除和恢复面试
+
+- 在“面试管理”的卡片下方点击“编辑”，可修改名称、说明、目标、问题和时长，保存后列表与详情同步更新。
+- 点击“删除”并确认后，面试移至回收站，候选人链接停用；已有回答、分析报告和录音保留。
+- 点击列表右上角“回收站”可恢复面试。恢复后仍保持停用，需要在详情页手动启用后才能继续接收候选人。
+
 First install the packages:
 
 ```bash

@@ -10,10 +10,12 @@ import {
 import Modal from "@/components/dashboard/Modal";
 import CreateInterviewCard from "@/components/dashboard/interview/createInterviewCard";
 import InterviewCard from "@/components/dashboard/interview/interviewCard";
+import InterviewRecycleBin from "@/components/dashboard/interview/interviewRecycleBin";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useInterviews } from "@/contexts/interviews.context";
 import { useAppSession } from "@/contexts/session.context";
-import { Gem, Plus } from "lucide-react";
+import { Gem, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
 
@@ -25,6 +27,7 @@ function Interviews() {
   const [currentPlan, setCurrentPlan] = useState<string>("");
   const [allowedResponsesCount, setAllowedResponsesCount] = useState<number>(10);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [showDeleted, setShowDeleted] = useState(false);
 
   function InterviewsLoader() {
     return (
@@ -88,90 +91,106 @@ function Interviews() {
   return (
     <main className="p-8 pt-0 ml-12 mr-auto rounded-md">
       <div className="flex flex-col items-left">
-        <h2 className="mr-2 text-2xl font-semibold tracking-tight mt-8">{t("My Interviews")}</h2>
-        <h3 className=" text-sm tracking-tight text-gray-600 font-medium ">
-          {t("Start getting responses now!")}
-        </h3>
-        <div className="relative flex items-center mt-1 flex-wrap">
-          {currentPlan === "free_trial_over" ? (
-            <Card className=" flex bg-gray-200 items-center border-dashed border-gray-700 border-2 hover:scale-105 ease-in-out duration-300 h-60 w-56 ml-1 mr-3 mt-4 rounded-xl shrink-0 overflow-hidden shadow-md">
-              <CardContent className="flex items-center flex-col mx-auto">
-                <div className="flex flex-col justify-center items-center w-full overflow-hidden">
-                  <Plus size={90} strokeWidth={0.5} className="text-gray-700" />
-                </div>
-                <CardTitle className="p-0 text-md text-center">
-                  {t("You cannot create any more interviews unless you upgrade")}
-                </CardTitle>
-              </CardContent>
-            </Card>
-          ) : (
-            <CreateInterviewCard />
-          )}
-          {interviewsLoading || loading ? (
-            <InterviewsLoader />
-          ) : (
-            <>
-              {isModalOpen && (
-                <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex justify-center text-indigo-600">
-                      <Gem />
-                    </div>
-                    <h3 className="text-xl font-semibold text-center">{t("Upgrade to Pro")}</h3>
-                    <p className="text-l text-center">
-                      {t(
-                        "You have reached your limit for the free trial. Please upgrade to pro to continue using our features.",
-                      )}
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex justify-center items-center">
-                        <Image
-                          src={"/premium-plan-icon.png"}
-                          alt={t("Graphic")}
-                          width={299}
-                          height={300}
-                        />
-                      </div>
-
-                      <div className="grid grid-rows-2 gap-2">
-                        <div className="p-4 border rounded-lg">
-                          <h4 className="text-lg font-medium">{t("Free Plan")}</h4>
-                          <ul className="list-disc pl-5 mt-2">
-                            <li>{t("10 Responses")}</li>
-                            <li>{t("Basic Support")}</li>
-                            <li>{t("Limited Features")}</li>
-                          </ul>
-                        </div>
-                        <div className="p-4 border rounded-lg">
-                          <h4 className="text-lg font-medium">{t("Pro Plan")}</h4>
-                          <ul className="list-disc pl-5 mt-2">
-                            <li>{t("Flexible Pay-Per-Response")}</li>
-                            <li>{t("Priority Support")}</li>
-                            <li>{t("All Features")}</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-l text-center">
-                      {t("Contact")} <span className="font-semibold">founders@folo-up.co</span>{" "}
-                      {t("to upgrade your plan.")}
-                    </p>
-                  </div>
-                </Modal>
-              )}
-              {interviews.map((item) => (
-                <InterviewCard
-                  id={item.id}
-                  interviewerId={item.interviewer_id}
-                  key={item.id}
-                  name={item.name}
-                  url={item.url ?? ""}
-                  readableSlug={item.readable_slug}
-                />
-              ))}
-            </>
-          )}
+        <div className="mt-8 flex items-center justify-between gap-4">
+          <h2 className="mr-2 text-2xl font-semibold tracking-tight">
+            {t(showDeleted ? "Recycle bin" : "My Interviews")}
+          </h2>
+          <Button variant="outline" onClick={() => setShowDeleted((value) => !value)}>
+            <Trash2 size={16} className="mr-2" />
+            {t(showDeleted ? "Back to interviews" : "Recycle bin")}
+          </Button>
         </div>
+        <h3 className=" text-sm tracking-tight text-gray-600 font-medium ">
+          {t(
+            showDeleted
+              ? "Deleted interviews keep their responses and can be restored."
+              : "Start getting responses now!",
+          )}
+        </h3>
+        {showDeleted ? (
+          <InterviewRecycleBin />
+        ) : (
+          <div className="relative flex items-center mt-1 flex-wrap">
+            {currentPlan === "free_trial_over" ? (
+              <Card className=" flex bg-gray-200 items-center border-dashed border-gray-700 border-2 hover:scale-105 ease-in-out duration-300 h-60 w-56 ml-1 mr-3 mt-4 rounded-xl shrink-0 overflow-hidden shadow-md">
+                <CardContent className="flex items-center flex-col mx-auto">
+                  <div className="flex flex-col justify-center items-center w-full overflow-hidden">
+                    <Plus size={90} strokeWidth={0.5} className="text-gray-700" />
+                  </div>
+                  <CardTitle className="p-0 text-md text-center">
+                    {t("You cannot create any more interviews unless you upgrade")}
+                  </CardTitle>
+                </CardContent>
+              </Card>
+            ) : (
+              <CreateInterviewCard />
+            )}
+            {interviewsLoading || loading ? (
+              <InterviewsLoader />
+            ) : (
+              <>
+                {isModalOpen && (
+                  <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+                    <div className="flex flex-col space-y-4">
+                      <div className="flex justify-center text-indigo-600">
+                        <Gem />
+                      </div>
+                      <h3 className="text-xl font-semibold text-center">{t("Upgrade to Pro")}</h3>
+                      <p className="text-l text-center">
+                        {t(
+                          "You have reached your limit for the free trial. Please upgrade to pro to continue using our features.",
+                        )}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex justify-center items-center">
+                          <Image
+                            src={"/premium-plan-icon.png"}
+                            alt={t("Graphic")}
+                            width={299}
+                            height={300}
+                          />
+                        </div>
+
+                        <div className="grid grid-rows-2 gap-2">
+                          <div className="p-4 border rounded-lg">
+                            <h4 className="text-lg font-medium">{t("Free Plan")}</h4>
+                            <ul className="list-disc pl-5 mt-2">
+                              <li>{t("10 Responses")}</li>
+                              <li>{t("Basic Support")}</li>
+                              <li>{t("Limited Features")}</li>
+                            </ul>
+                          </div>
+                          <div className="p-4 border rounded-lg">
+                            <h4 className="text-lg font-medium">{t("Pro Plan")}</h4>
+                            <ul className="list-disc pl-5 mt-2">
+                              <li>{t("Flexible Pay-Per-Response")}</li>
+                              <li>{t("Priority Support")}</li>
+                              <li>{t("All Features")}</li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-l text-center">
+                        {t("Contact")} <span className="font-semibold">founders@folo-up.co</span>{" "}
+                        {t("to upgrade your plan.")}
+                      </p>
+                    </div>
+                  </Modal>
+                )}
+                {interviews.map((item) => (
+                  <InterviewCard
+                    id={item.id}
+                    interviewerId={item.interviewer_id}
+                    key={item.id}
+                    name={item.name}
+                    url={item.url ?? ""}
+                    readableSlug={item.readable_slug}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );

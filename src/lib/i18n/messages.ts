@@ -1,4 +1,30 @@
 export const zhCNMessages: Record<string, string> = {
+  "Edit {name}": "编辑{name}",
+  Interview: "面试",
+  "Edit Interview": "编辑面试",
+  "Delete {name}": "删除{name}",
+  "Recycle bin": "回收站",
+  "Back to interviews": "返回面试列表",
+  "Deleted interviews keep their responses and can be restored.":
+    "已删除的面试保留回答和报告，可随时恢复。",
+  "Move this interview to the recycle bin?": "将这场面试移至回收站？",
+  "The interview link will stop accepting candidates. Existing responses, reports and recordings are kept. You can restore it from the recycle bin.":
+    "删除后面试链接将停止接受候选人，已有回答、报告和录音会保留。你可以在回收站恢复。",
+  "Move to recycle bin": "移至回收站",
+  "Deleting...": "正在删除…",
+  "Interview moved to the recycle bin.": "面试已移至回收站。",
+  "Interview restored. It stays inactive until you enable it in its details.":
+    "面试已恢复，当前保持停用，可在详情页重新启用。",
+  "Could not restore the interview. Please try again.": "恢复面试失败，请重试。",
+  "Could not load the recycle bin.": "回收站加载失败，请重试。",
+  "The recycle bin is empty.": "回收站为空。",
+  "Interview link disabled. Responses and reports are kept.": "面试链接已停用，回答和报告已保留。",
+  "Restoring...": "正在恢复…",
+  Restore: "恢复",
+  "Interview name is required.": "请输入面试名称。",
+  "Could not save changes. Please try again.": "保存失败，请重试。",
+  "This interview is in the recycle bin. Restore it from Interview Management before editing or enabling it.":
+    "该面试已移至回收站，请在“面试管理”的回收站中恢复后再编辑或启用。",
   "Sign in with Feishu": "使用飞书登录",
   "Continue with Feishu": "飞书授权登录",
   "Sign in to manage interviews and view reports.": "登录后即可管理面试、查看回答与分析报告。",

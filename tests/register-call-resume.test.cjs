@@ -4,7 +4,7 @@ const vm = require("node:vm");
 const test = require("node:test");
 const ts = require("typescript");
 
-function setup({ syncFailure = false, active = true } = {}) {
+function setup({ syncFailure = false, active = true, archived = false } = {}) {
   const state = { calls: [], saved: [], prompts: [] };
   const prompt = fs
     .readFileSync("src/lib/constants.ts", "utf8")
@@ -20,6 +20,7 @@ function setup({ syncFailure = false, active = true } = {}) {
         getInterviewById: async () => ({
           id: "interview-test",
           is_active: active,
+          is_archived: archived,
           is_anonymous: false,
           respondents: [],
           time_duration: "1",
@@ -119,4 +120,11 @@ test("an inactive interview cannot create a provider call", async () => {
   const { state, post } = setup({ active: false });
   assert.equal((await post("resume")).status, 404);
   assert.equal(state.calls.length, 0);
+});
+
+test("a deleted interview cannot create a paid call even if its active flag is stale", async () => {
+  const { state, post } = setup({ active: true, archived: true });
+  assert.equal((await post("test-only resume")).status, 404);
+  assert.equal(state.calls.length, 0);
+  assert.equal(state.prompts.length, 0);
 });

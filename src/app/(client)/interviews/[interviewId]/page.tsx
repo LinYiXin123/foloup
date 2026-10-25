@@ -325,6 +325,8 @@ function InterviewHome({ params, searchParams }: Props) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    aria-label={t("Theme Color")}
+                    disabled={interview?.is_archived}
                     className="bg-transparent shadow-none text-xs text-indigo-600 px-0 h-7 hover:scale-110 relative"
                     onClick={(event) => {
                       event.stopPropagation();
@@ -347,8 +349,11 @@ function InterviewHome({ params, searchParams }: Props) {
                     onClick={(event) => {
                       router.push(`/interviews/${resolvedParams.interviewId}?edit=true`);
                     }}
+                    aria-label={t("Edit")}
+                    disabled={interview?.is_archived}
                   >
                     <Pencil size={16} />
+                    <span className="ml-1">{t("Edit")}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-zinc-300" side="bottom" sideOffset={4}>
@@ -375,6 +380,7 @@ function InterviewHome({ params, searchParams }: Props) {
                     {t(isActive ? "Active" : "Inactive")}
                   </span>
                   <Switch
+                    disabled={interview?.is_archived}
                     checked={isActive}
                     className={`ms-3 my-auto ${isActive ? "bg-indigo-600" : "bg-[#E6E7EB]"}`}
                     onCheckedChange={handleToggle}
@@ -383,6 +389,13 @@ function InterviewHome({ params, searchParams }: Props) {
               )}
             </div>
           </div>
+          {interview?.is_archived && (
+            <output className="mx-3 block rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
+              {t(
+                "This interview is in the recycle bin. Restore it from Interview Management before editing or enabling it.",
+              )}
+            </output>
+          )}
           <div className="flex flex-row w-full p-2 h-[85%] gap-1 ">
             <div className="w-[20%] flex flex-col p-2 divide-y-2 rounded-sm border-2 border-slate-100">
               <div className="flex w-full justify-center py-2">
@@ -523,8 +536,11 @@ function InterviewHome({ params, searchParams }: Props) {
                     onCandidateStatusChange={handleCandidateStatusChange}
                     onReportLoaded={handleReportLoaded}
                   />
-                ) : resolvedSearchParams.edit ? (
-                  <EditInterview interview={interview} />
+                ) : resolvedSearchParams.edit && !interview?.is_archived ? (
+                  <EditInterview
+                    interview={interview}
+                    onUpdated={() => setLoadAttempt((attempt) => attempt + 1)}
+                  />
                 ) : (
                   <SummaryInfo responses={responses} interview={interview} />
                 )}

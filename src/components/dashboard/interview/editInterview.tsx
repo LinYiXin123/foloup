@@ -2,26 +2,16 @@
 
 import { useLanguage } from "@/contexts/language.context";
 
-import { deleteMyInterview, updateMyInterview } from "@/actions/dashboard";
+import { updateMyInterview } from "@/actions/dashboard";
 import QuestionCard from "@/components/dashboard/interview/create-popup/questionCard";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import DeleteInterviewDialog from "@/components/dashboard/interview/deleteInterviewDialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { useInterviewers } from "@/contexts/interviewers.context";
 import { useInterviews } from "@/contexts/interviews.context";
 import type { Interview, Question } from "@/types/interview";
-import { Plus, SaveIcon, TrashIcon } from "lucide-react";
+import { Plus, SaveIcon } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -32,13 +22,15 @@ import { CardTitle } from "../../ui/card";
 
 type EditInterviewProps = {
   interview: Interview | undefined;
+  onUpdated: () => void;
 };
 
-function EditInterview({ interview }: EditInterviewProps) {
+function EditInterview({ interview, onUpdated }: EditInterviewProps) {
   const { t } = useLanguage();
   const { interviewers } = useInterviewers();
   const { fetchInterviews } = useInterviews();
 
+  const [name, setName] = useState(interview?.name || "");
   const [description, setDescription] = useState<string>(interview?.description || "");
   const [objective, setObjective] = useState<string>(interview?.objective || "");
   const [numQuestions, setNumQuestions] = useState<number>(interview?.question_count || 1);
@@ -48,6 +40,7 @@ function EditInterview({ interview }: EditInterviewProps) {
   const [isAnonymous, setIsAnonymous] = useState<boolean>(interview?.is_anonymous || false);
 
   const [isClicked, setIsClicked] = useState(false);
+  const savingRef = useRef(false);
 
   const endOfListRef = useRef<HTMLDivElement>(null);
   const prevQuestionLengthRef = useRef(questions.length);
@@ -84,9 +77,19 @@ function EditInterview({ interview }: EditInterviewProps) {
   };
 
   const onSave = async () => {
+    if (savingRef.current || !interview) {
+      return;
+    }
+    if (!name.trim()) {
+      toast.error(t("Interview name is required."));
+      return;
+    }
+    savingRef.current = true;
+    setIsClicked(true);
     const questionCount = questions.length < numQuestions ? questions.length : numQuestions;
 
     const interviewData = {
+      name: name.trim(),
       objective: objective,
       questions: questions,
       interviewer_id: Number(selectedInterviewer),
@@ -97,36 +100,23 @@ function EditInterview({ interview }: EditInterviewProps) {
     };
 
     try {
-      if (!interview) {
-        return;
-      }
-      const response = await updateMyInterview(interview.id, interviewData);
-      setIsClicked(false);
+      await updateMyInterview(interview.id, interviewData);
       fetchInterviews();
+      onUpdated();
       toast.success(t("Interview updated successfully."), {
         position: "bottom-right",
         duration: 3000,
       });
       router.push(`/interviews/${interview?.id}`);
     } catch (error) {
-      console.error("Error creating interview:", error);
-    }
-  };
-
-  const onDeleteInterviewClick = async () => {
-    if (!interview) {
-      return;
-    }
-
-    try {
-      await deleteMyInterview(interview.id);
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error deleting interview:", error);
-      toast.error(t("Failed to delete the interview."), {
+      console.error("Error updating interview:", error);
+      toast.error(t("Could not save changes. Please try again."), {
         position: "bottom-right",
         duration: 3000,
       });
+    } finally {
+      savingRef.current = false;
+      setIsClicked(false);
     }
   };
 
@@ -138,7 +128,7 @@ function EditInterview({ interview }: EditInterviewProps) {
   }, [questions.length]);
 
   return (
-    <div className=" h-screen z-[10] mx-2">
+    <div className="h-full overflow-y-auto pb-12 z-[10] mx-2">
       <div className="flex flex-col bg-gray-200 rounded-md min-h-[120px] p-2 pl-4">
         <div>
           <button
@@ -153,54 +143,43 @@ function EditInterview({ interview }: EditInterviewProps) {
           </button>
         </div>
         <div className="flex flex-row justify-between">
-          <p className="mt-3 mb-1 ml-2 font-medium">
-            {t("Interview Description")}{" "}
-            <span className="text-xs ml-2 font-normal">
-              {t("(Your respondents will see this.)")}
-            </span>
-          </p>
+          <p className="mt-3 mb-1 ml-2 font-medium">{t("Edit Interview")}</p>
           <div className="flex flex-row gap-3">
             <Button
               disabled={isClicked}
               className="bg-indigo-600 hover:bg-indigo-800 mt-2"
-              onClick={() => {
-                setIsClicked(true);
-                onSave();
-              }}
+              onClick={() => void onSave()}
             >
               {t("Save")} <SaveIcon size={16} className="ml-2" />
             </Button>
-            <AlertDialog>
-              <AlertDialogTrigger>
-                <Button disabled={isClicked} className="bg-red-500 hover:bg-red-600 mr-5 mt-2 p-2">
-                  <TrashIcon size={16} className="" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t("Are you sure?")}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t(
-                      "This action cannot be undone. This will permanently delete this interview.",
-                    )}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-indigo-600 hover:bg-indigo-800"
-                    onClick={async () => {
-                      await onDeleteInterviewClick();
-                    }}
-                  >
-                    {t("Continue")}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {interview && (
+              <DeleteInterviewDialog
+                id={interview.id}
+                name={interview.name}
+                onDeleted={() => {
+                  fetchInterviews();
+                  router.push("/dashboard");
+                }}
+              />
+            )}
           </div>
         </div>
+        <label htmlFor="edit-interview-name" className="mt-3 mb-1 ml-2 font-medium">
+          {t("Interview Name:")}
+        </label>
+        <input
+          id="edit-interview-name"
+          value={name}
+          maxLength={200}
+          onChange={(event) => setName(event.target.value)}
+          className="ml-2 w-[75%] rounded-md border-2 border-gray-400 px-2 py-2"
+        />
+        <label htmlFor="edit-interview-description" className="mt-3 mb-1 ml-2 font-medium">
+          {t("Interview Description")}{" "}
+          <span className="text-xs font-normal">{t("(Your respondents will see this.)")}</span>
+        </label>
         <textarea
+          id="edit-interview-description"
           value={description}
           className="h-fit mt-3 ml-2 py-2 border-2 rounded-md w-[75%] px-2 border-gray-400"
           placeholder={t("Enter your interview description here.")}
