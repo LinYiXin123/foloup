@@ -183,7 +183,6 @@ function Interviews() {
                     interviewerId={item.interviewer_id}
                     key={item.id}
                     name={item.name}
-                    url={item.url ?? ""}
                     readableSlug={item.readable_slug}
                   />
                 ))}

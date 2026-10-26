@@ -15,7 +15,8 @@ export async function POST(req: Request) {
 
   try {
     const url_id = nanoid();
-    const url = getInterviewUrl(url_id, base_url || new URL(req.url).origin);
+    const origin = new URL(req.url).origin;
+    const url = getInterviewUrl(url_id, base_url || origin, origin);
     const body = await req.json();
 
     logger.info("create-interview request received");

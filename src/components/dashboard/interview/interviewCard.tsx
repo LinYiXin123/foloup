@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useInterviews } from "@/contexts/interviews.context";
 import { useLanguage } from "@/contexts/language.context";
-import { getInterviewUrl } from "@/lib/interview-url";
+import { getInterviewUrl, isLocalInterviewUrl } from "@/lib/interview-url";
 import axios from "axios";
 import { ArrowUpRight, Copy, Pencil } from "lucide-react";
 import { CopyCheck } from "lucide-react";
@@ -22,13 +22,12 @@ interface Props {
   name: string | null;
   interviewerId: bigint;
   id: string;
-  url: string;
   readableSlug: string;
 }
 
 const base_url = process.env.NEXT_PUBLIC_LIVE_URL;
 
-function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
+function InterviewCard({ name, interviewerId, id, readableSlug }: Props) {
   const { t } = useLanguage();
   const { fetchInterviews } = useInterviews();
   const [copied, setCopied] = useState(false);
@@ -83,23 +82,29 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
   }, []);
 
   const copyToClipboard = () => {
-    navigator.clipboard
-      .writeText(getInterviewUrl(readableSlug || id, base_url || url || window.location.origin))
-      .then(
-        () => {
-          setCopied(true);
-          toast.success(t("The link to your interview has been copied to your clipboard."), {
-            position: "bottom-right",
-            duration: 3000,
-          });
-          setTimeout(() => {
-            setCopied(false);
-          }, 2000);
-        },
-        (err) => {
-          console.log("failed to copy", err.mesage);
-        },
-      );
+    const interviewUrl = getInterviewUrl(
+      readableSlug || id,
+      base_url || window.location.origin,
+      window.location.origin,
+    );
+    navigator.clipboard.writeText(interviewUrl).then(
+      () => {
+        setCopied(true);
+        const message = isLocalInterviewUrl(interviewUrl)
+          ? "Local link copied. Other people cannot access it until a public address is configured."
+          : "The link to your interview has been copied to your clipboard.";
+        toast[isLocalInterviewUrl(interviewUrl) ? "info" : "success"](t(message), {
+          position: "bottom-right",
+          duration: 3000,
+        });
+        setTimeout(() => {
+          setCopied(false);
+        }, 2000);
+      },
+      (err) => {
+        console.log("failed to copy", err.mesage);
+      },
+    );
   };
 
   const handleJumpToInterview = (event: React.MouseEvent) => {
@@ -107,7 +112,8 @@ function InterviewCard({ name, interviewerId, id, url, readableSlug }: Props) {
     event.preventDefault();
     const interviewUrl = getInterviewUrl(
       readableSlug || id,
-      base_url || url || window.location.origin,
+      base_url || window.location.origin,
+      window.location.origin,
     );
     window.open(interviewUrl, "_blank");
   };

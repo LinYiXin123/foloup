@@ -4,6 +4,7 @@ import Modal from "@/components/dashboard/Modal";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/language.context";
+import { isLocalInterviewUrl } from "@/lib/interview-url";
 import { Copy } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -79,6 +80,13 @@ function SharePopup({ open, onClose, shareContent }: SharePopupProps) {
     <Modal open={open} closeOnOutsideClick={false} onClose={onClose}>
       <div className="w-[28rem] flex flex-col">
         <p className="text-lg font-semibold mb-4">{t("Share via:")}</p>
+        {isLocalInterviewUrl(url) && (
+          <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-900">
+            {t(
+              "This link only works on this computer. Configure a public HTTPS address before sharing it with candidates.",
+            )}
+          </p>
+        )}
         <div className="h-auto rounded-xl">
           <Tabs value={activeTab} className="flex flex-col h-full" onValueChange={setActiveTab}>
             <div className="w-auto">

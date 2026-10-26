@@ -74,7 +74,8 @@ function InterviewHome({ params, searchParams }: Props) {
     if (interview) {
       const url = getInterviewUrl(
         interview.readable_slug || interview.id,
-        base_url || interview.url || window.location.origin,
+        base_url || window.location.origin,
+        window.location.origin,
       );
       window.open(url, "_blank");
     } else {
@@ -571,7 +572,8 @@ function InterviewHome({ params, searchParams }: Props) {
             interview
               ? getInterviewUrl(
                   interview.readable_slug || interview.id,
-                  base_url || interview.url || window.location.origin,
+                  base_url || window.location.origin,
+                  window.location.origin,
                 )
               : ""
           }

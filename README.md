@@ -109,7 +109,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Self Hosting
 
-We recommend using [Vercel](https://vercel.com/) to host the app.
+候选人无法通过 `localhost` 访问你的电脑。让他人在外网参加面试，需要将项目部署到公网服务器或托管平台，并使用 HTTPS 地址。配置和验收步骤见[公网分享与部署](docs/public-access.md)。
 
 ## Contributing
 

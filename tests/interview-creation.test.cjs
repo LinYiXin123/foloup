@@ -27,7 +27,7 @@ function load(relativePath, imports = {}, env = {}) {
   return exports;
 }
 
-const { getInterviewUrl } = load("src/lib/interview-url.ts");
+const { getInterviewUrl, isLocalInterviewUrl } = load("src/lib/interview-url.ts");
 
 for (const [base, expectedOrigin] of [
   ["http://localhost:3000/", "http://localhost:3000"],
@@ -47,7 +47,32 @@ for (const [base, expectedOrigin] of [
   });
 }
 
-function setup({ failure, anonymous = false, base } = {}) {
+test("a public visit replaces a localhost development setting in candidate links", () => {
+  for (const base of ["localhost:3000", "http://127.0.0.1:3000", "http://[::1]:3000"]) {
+    assert.equal(
+      getInterviewUrl("ai管培生", base, "https://interviews.example.com"),
+      "https://interviews.example.com/call/ai%E7%AE%A1%E5%9F%B9%E7%94%9F",
+    );
+  }
+});
+
+test("a configured public address is retained when managing interviews locally", () => {
+  assert.equal(
+    getInterviewUrl("interview-1", "https://interviews.example.com", "http://localhost:3000"),
+    "https://interviews.example.com/call/interview-1",
+  );
+});
+
+test("local-link notices identify loopback hosts rather than text in a public URL", () => {
+  for (const url of ["http://localhost:3000/call/1", "127.0.0.1:3000", "http://[::1]:3000"]) {
+    assert.equal(isLocalInterviewUrl(url), true);
+  }
+  for (const url of ["https://localhost.example.com", "https://example.com/call/localhost", ""]) {
+    assert.equal(isLocalInterviewUrl(url), false);
+  }
+});
+
+function setup({ failure, anonymous = false, base, origin = "http://localhost:3000" } = {}) {
   const inserted = [];
   const { InterviewService } = load("src/services/interviews.service.ts", {
     "@/lib/supabase": {
@@ -85,7 +110,7 @@ function setup({ failure, anonymous = false, base } = {}) {
     inserted,
     post: () =>
       POST(
-        new Request("http://localhost:3000/api/create-interview", {
+        new Request(`${origin}/api/create-interview`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -115,6 +140,15 @@ test("creation falls back to the request origin when the public URL is unset", a
   const { inserted, post } = setup();
   assert.equal((await post()).status, 200);
   assert.equal(inserted[0].url, "http://localhost:3000/call/new-interview");
+});
+
+test("creation through a public domain does not store the localhost development address", async () => {
+  const { inserted, post } = setup({
+    base: "http://localhost:3000",
+    origin: "https://interviews.example.com",
+  });
+  assert.equal((await post()).status, 200);
+  assert.equal(inserted[0].url, "https://interviews.example.com/call/new-interview");
 });
 
 test("a database write failure returns an error rather than successful creation", async () => {

@@ -250,6 +250,10 @@ export const zhCNMessages: Record<string, string> = {
     "请使用电脑登录，以获得完整的面试管理体验。",
   "Thank you very much for considering.": "感谢你的理解。",
   "Share via:": "分享面试：",
+  "This link only works on this computer. Configure a public HTTPS address before sharing it with candidates.":
+    "此链接只能在本机打开。请先配置公网 HTTPS 地址，再分享给候选人。",
+  "Local link copied. Other people cannot access it until a public address is configured.":
+    "已复制本机链接。配置公网地址后，其他人才能访问。",
   URL: "链接",
   Embed: "嵌入网页",
   "Copy URL": "复制链接",
